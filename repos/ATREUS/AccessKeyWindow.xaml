@@ -1,0 +1,28 @@
+<Window x:Class="ATREUS.AccessKeyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Autorisation requise"
+        Icon="/ATREUS;component/Assets/atreus.ico"
+        Width="430"
+        Height="300"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#06151D"
+        Foreground="#E8EEF0">
+    <Window.Resources>
+        <SolidColorBrush x:Key="CardBrush" Color="#0B222D" />
+        <SolidColorBrush x:Key="FieldBrush" Color="#06151D" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#214451" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#A9BBC0" />
+        <SolidColorBrush x:Key="GoldBrush" Color="#C8A24A" />
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel><TextBlock Text="ATREUS · CONTRÔLE D'ACCÈS" Foreground="{StaticResource GoldBrush}" FontSize="11" /><TextBlock Text="Autorisation requise" FontSize="24" FontWeight="Bold" Margin="0,6,0,0" /></StackPanel>
+        <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,18,0,16">
+            <StackPanel><TextBlock Text="Cette action nécessite une clé d'accès administrateur." Foreground="{StaticResource MutedBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" /><PasswordBox x:Name="PasswordInput" Background="{StaticResource FieldBrush}" Foreground="#FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="10,8" FontSize="16" KeyDown="PasswordKeyDown" /><TextBlock x:Name="ErrorText" Text="" Foreground="#E28076" FontSize="11" Margin="0,8,0,0" /></StackPanel>
+        </Border>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="Annuler" Padding="15,8" Margin="0,0,10,0" Background="Transparent" Foreground="#FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Click="CancelClick" /><Button Content="Valider" Padding="15,8" Background="{StaticResource GoldBrush}" Foreground="#06151D" BorderThickness="0" Click="ValidateClick" /></StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,38 @@
+2026-09-23 16:23:35.082: [INFO] CurrentProfilePath: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:23:35.082: [INFO] Profiles total count: 1
+2026-09-23 16:23:35.082: [INFO] Profile: name=Profil 1 path=C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default lastActive=null
+2026-09-23 16:23:35.082: [INFO] LastUsedProfileDir: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:23:35.083: [INFO] OnDoneLoading sync enabled: 0
+2026-09-23 16:23:35.083: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-09-23 16:23:35.083: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-09-23 16:23:35.083: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:23:53.354: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:24:04.226: [INFO] CurrentProfilePath: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:24:04.226: [INFO] Profiles total count: 1
+2026-09-23 16:24:04.226: [INFO] Profile: name=Profil 1 path=C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default lastActive=null
+2026-09-23 16:24:04.226: [INFO] LastUsedProfileDir: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:24:04.226: [INFO] OnDoneLoading sync enabled: 0
+2026-09-23 16:24:04.226: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-09-23 16:24:04.226: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-09-23 16:24:04.226: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:26:04.455: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:26:16.159: [INFO] CurrentProfilePath: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:26:16.159: [INFO] Profiles total count: 1
+2026-09-23 16:26:16.160: [INFO] Profile: name=Profil 1 path=C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default lastActive=2026-09-23T16:24:12.230Z
+2026-09-23 16:26:16.160: [INFO] LastUsedProfileDir: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:26:16.160: [INFO] MostRecentlyActiveProfile: name=Profil 1 path=C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default lastActive=2026-09-23T16:24:12.230Z
+2026-09-23 16:26:16.160: [INFO] OnDoneLoading sync enabled: 0
+2026-09-23 16:26:16.160: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-09-23 16:26:16.160: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-09-23 16:26:16.160: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:27:56.421: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:28:24.527: [INFO] CurrentProfilePath: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:28:24.527: [INFO] Profiles total count: 1
+2026-09-23 16:28:24.528: [INFO] Profile: name=Profil 1 path=C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default lastActive=2026-09-23T16:27:25.617Z
+2026-09-23 16:28:24.528: [INFO] LastUsedProfileDir: C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default
+2026-09-23 16:28:24.528: [INFO] MostRecentlyActiveProfile: name=Profil 1 path=C:\Users\goutt\source\repos\ATREUS\bin\Debug\net8.0-windows\ATREUS.exe.WebView2\EBWebView\Default lastActive=2026-09-23T16:27:25.617Z
+2026-09-23 16:28:24.528: [INFO] OnDoneLoading sync enabled: 0
+2026-09-23 16:28:24.528: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-09-23 16:28:24.528: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-09-23 16:28:24.528: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-09-23 16:31:26.586: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1

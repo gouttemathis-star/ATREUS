@@ -1,0 +1,36 @@
+<Window x:Class="ATREUS.EditVehicleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Modifier le véhicule"
+        Icon="/ATREUS;component/Assets/atreus.ico"
+        Width="560"
+        Height="520"
+        WindowStartupLocation="CenterOwner"
+        Background="#06151D"
+        Foreground="#E8EEF0">
+    <Window.Resources>
+        <SolidColorBrush x:Key="CardBrush" Color="#0B222D" />
+        <SolidColorBrush x:Key="FieldBrush" Color="#06151D" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#214451" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#A9BBC0" />
+        <SolidColorBrush x:Key="GoldBrush" Color="#C8A24A" />
+        <Style x:Key="LabelStyle" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource MutedBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0,0,0,5" /></Style>
+        <Style x:Key="InputStyle" TargetType="TextBox"><Setter Property="Background" Value="{StaticResource FieldBrush}" /><Setter Property="Foreground" Value="#FFFFFF" /><Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Padding" Value="10,8" /><Setter Property="FontSize" Value="15" /></Style>
+        <Style x:Key="SelectStyle" TargetType="ComboBox"><Setter Property="Background" Value="#000000" /><Setter Property="Foreground" Value="#FFFFFF" /><Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Padding" Value="10,8" /><Setter Property="FontSize" Value="15" /><Setter Property="OverridesDefaultStyle" Value="True" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"><Grid><ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" TextElement.Foreground="{TemplateBinding Foreground}" /><ToggleButton Width="42" HorizontalAlignment="Right" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press" Background="Transparent" BorderThickness="0"><TextBlock Text="⌄" Foreground="{TemplateBinding Foreground}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" /></ToggleButton></Grid></Border><Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False"><Border Background="#000000" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"><ScrollViewer MaxHeight="220"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" /></ScrollViewer></Border></Popup></Grid></ControlTemplate></Setter.Value></Setter></Style>
+        <Style TargetType="ComboBoxItem"><Setter Property="Foreground" Value="#FFFFFF" /><Setter Property="Background" Value="#000000" /><Setter Property="Padding" Value="10,8" /><Style.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter Property="Background" Value="#172A31" /><Setter Property="Foreground" Value="#FFFFFF" /></Trigger></Style.Triggers></Style>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,20"><TextBlock Text="ATREUS · MODIFICATION" Foreground="{StaticResource GoldBrush}" FontSize="11" /><TextBlock Text="Modifier le véhicule" FontSize="26" FontWeight="Bold" Margin="0,6,0,0" /></StackPanel>
+        <Border Grid.Row="1" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="18">
+            <StackPanel>
+                <TextBlock Text="INFORMATIONS DU PARC" Foreground="{StaticResource GoldBrush}" FontSize="11" Margin="0,0,0,14" />
+                <TextBlock Text="Identifiant interne" Style="{StaticResource LabelStyle}" /><TextBox x:Name="IdentifierInput" Style="{StaticResource InputStyle}" Margin="0,0,0,14" />
+                <TextBlock Text="Description" Style="{StaticResource LabelStyle}" /><TextBox x:Name="DescriptionInput" Style="{StaticResource InputStyle}" Margin="0,0,0,14" />
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="12" /><ColumnDefinition /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Type" Style="{StaticResource LabelStyle}" /><ComboBox x:Name="TypeInput" Style="{StaticResource SelectStyle}" SelectedIndex="0"><ComboBoxItem Content="Terrestre" /><ComboBoxItem Content="Aérien" /><ComboBoxItem Content="Maritime" /></ComboBox></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="État" Style="{StaticResource LabelStyle}" /><ComboBox x:Name="StateInput" Style="{StaticResource SelectStyle}" SelectedIndex="0"><ComboBoxItem Content="Disponible" /><ComboBoxItem Content="Maintenance" /><ComboBoxItem Content="Indisponible" /></ComboBox></StackPanel></Grid>
+            </StackPanel>
+        </Border>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button Content="Annuler" Padding="16,9" Margin="0,0,10,0" Background="Transparent" Foreground="#FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Click="CancelClick" /><Button Content="Enregistrer" Padding="16,9" Background="{StaticResource GoldBrush}" Foreground="#06151D" BorderThickness="0" Click="SaveClick" /></StackPanel>
+    </Grid>
+</Window>
