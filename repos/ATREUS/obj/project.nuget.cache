@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jC5wJ8XuecA=",
+  "dgSpecHash": "onsSUDPbJC8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
+  "projectFilePath": "C:\\Users\\goutt\\source\\repos\\test\\ATREUS\\repos\\ATREUS\\ATREUS.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\goutt\\.nuget\\packages\\brutile\\6.0.0\\brutile.6.0.0.nupkg.sha512",
     "C:\\Users\\goutt\\.nuget\\packages\\excss\\4.3.1\\excss.4.3.1.nupkg.sha512",
@@ -41,42 +41,5 @@
     "C:\\Users\\goutt\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.31\\microsoft.aspnetcore.app.ref.8.0.31.nupkg.sha512",
     "C:\\Users\\goutt\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.31\\microsoft.netcore.app.host.win-x64.8.0.31.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1701",
-      "level": "Warning",
-      "message": "Le package 'OpenTK 3.3.1' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net8.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
-      "libraryId": "OpenTK",
-      "targetGraphs": [
-        "net8.0-windows"
-      ]
-    },
-    {
-      "code": "NU1701",
-      "level": "Warning",
-      "message": "Le package 'OpenTK.GLWpfControl 3.3.0' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net8.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
-      "libraryId": "OpenTK.GLWpfControl",
-      "targetGraphs": [
-        "net8.0-windows"
-      ]
-    },
-    {
-      "code": "NU1701",
-      "level": "Warning",
-      "message": "Le package 'SkiaSharp.Views.WPF 3.119.2' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net8.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
-      "libraryId": "SkiaSharp.Views.WPF",
-      "targetGraphs": [
-        "net8.0-windows"
-      ]
-    }
-  ]
+  "logs": []
 }

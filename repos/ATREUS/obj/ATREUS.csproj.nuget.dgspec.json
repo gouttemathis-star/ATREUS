@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj": {}
+    "C:\\Users\\goutt\\source\\repos\\test\\ATREUS\\repos\\ATREUS\\ATREUS.csproj": {}
   },
   "projects": {
-    "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj": {
+    "C:\\Users\\goutt\\source\\repos\\test\\ATREUS\\repos\\ATREUS\\ATREUS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
+        "projectUniqueName": "C:\\Users\\goutt\\source\\repos\\test\\ATREUS\\repos\\ATREUS\\ATREUS.csproj",
         "projectName": "ATREUS",
-        "projectPath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\ATREUS.csproj",
+        "projectPath": "C:\\Users\\goutt\\source\\repos\\test\\ATREUS\\repos\\ATREUS\\ATREUS.csproj",
         "packagesPath": "C:\\Users\\goutt\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\goutt\\source\\repos\\ATREUS\\obj\\",
+        "outputPath": "C:\\Users\\goutt\\source\\repos\\test\\ATREUS\\repos\\ATREUS\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\goutt\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -30,6 +30,9 @@
           }
         },
         "warningProperties": {
+          "noWarn": [
+            "NU1701"
+          ],
           "warnAsError": [
             "NU1605"
           ]

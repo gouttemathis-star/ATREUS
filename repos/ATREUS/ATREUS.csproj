@@ -7,10 +7,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\atreus.ico</ApplicationIcon>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mapsui.Wpf" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Wpf">
+      <Version>5.1.0</Version>
+    </PackageReference>
     <Resource Include="Assets\atreus.ico" />
   </ItemGroup>
 
