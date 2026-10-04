@@ -1,3 +1,54 @@
-<UserControl x:Class="ATREUS.OperationsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="#06151D">
-    <Grid Margin="30,28,42,40"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions><StackPanel Margin="0,0,0,22"><TextBlock x:Name="SectionLabel" Text="ATREUS · SUIVI OPÉRATIONNEL" Foreground="#C8A24A" FontSize="11" /><TextBlock x:Name="TitleLabel" Text="Incidents" FontSize="34" FontWeight="Bold" Margin="0,8,0,4" /><TextBlock Text="Suivi des événements associés aux moyens du parc." Foreground="#A9BBC0" FontSize="13" /></StackPanel><Border Grid.Row="1" Background="#091D27" BorderBrush="#214451" BorderThickness="1" CornerRadius="10" Padding="18"><StackPanel><Grid Margin="0,0,0,16"><TextBlock x:Name="CountLabel" Foreground="#A9BBC0" /><Button Content="+ Nouvelle entrée" HorizontalAlignment="Right" Padding="12,6" Background="#C8A24A" Foreground="#06151D" BorderThickness="0" Click="AddClick" /></Grid><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsControl x:Name="EntriesList"><ItemsControl.ItemTemplate><DataTemplate><Border Background="#0B222D" BorderBrush="#214451" BorderThickness="1" CornerRadius="7" Padding="14" Margin="0,0,0,8"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="130" /><ColumnDefinition Width="180" /><ColumnDefinition /><ColumnDefinition Width="130" /></Grid.ColumnDefinitions><TextBlock Text="{Binding Number}" FontWeight="Bold" FontSize="15" /><TextBlock Grid.Column="1" Text="{Binding VehicleIdentifier}" Foreground="#A9BBC0" /><TextBlock Grid.Column="2" Text="{Binding Nature}" /><TextBlock Grid.Column="3" Text="{Binding Status}" Foreground="#E2A05A" HorizontalAlignment="Right" /></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></StackPanel></Border></Grid>
+<UserControl x:Class="ATREUS.OperationsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource PageBrush}">
+    <Grid Margin="30,28,42,40">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock x:Name="SectionLabel" Foreground="{StaticResource GoldBrush}" FontSize="11" />
+            <TextBlock x:Name="TitleLabel" FontSize="34" FontWeight="Bold" Margin="0,8,0,4" />
+            <TextBlock x:Name="DescriptionLabel" Text="Suivi des opérations associées aux véhicules et aux chauffeurs." Foreground="{StaticResource MutedBrush}" FontSize="13" />
+        </StackPanel>
+        <Border Grid.Row="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,14">
+                    <TextBlock x:Name="CountLabel" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                    <Button x:Name="AddOperationButton" Content="+ Nouvelle entrée" HorizontalAlignment="Right" Padding="12,6" Background="{StaticResource GoldBrush}" Foreground="{StaticResource PageBrush}" BorderThickness="0" Click="AddClick" />
+                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="EntriesList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="7" Padding="10" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.1*" /><ColumnDefinition Width="1.1*" /><ColumnDefinition Width="1.2*" /><ColumnDefinition Width="2*" /><ColumnDefinition Width="1.4*" /><ColumnDefinition Width="1.3*" /></Grid.ColumnDefinitions>
+                                        <Button Content="{Binding Operation.Number}" Tag="{Binding Operation}" IsEnabled="{Binding CanEdit}" HorizontalContentAlignment="Left" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" FontWeight="Bold" Click="EntryClick" />
+                                        <TextBlock Grid.Column="1" Text="{Binding DateTimeLabel}" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="2" Content="{Binding VehicleIdentifier}" Tag="{Binding Vehicle}" HorizontalContentAlignment="Left" Background="Transparent" Foreground="{StaticResource GoldBrush}" BorderThickness="0" Click="VehicleClick" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Operation.Nature}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        <Button Grid.Column="4" Content="{Binding DriverName}" Tag="{Binding Driver}" HorizontalContentAlignment="Right" Background="Transparent" Foreground="{StaticResource MutedBrush}" BorderThickness="0" Click="DriverClick" />
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding Operation.Status}" Foreground="#E2A05A" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <Button Content="×" Tag="{Binding Operation}" Padding="7,2" Background="Transparent" Foreground="{StaticResource DangerBrush}" BorderBrush="{StaticResource BorderBrush}" Click="DeleteClick">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CanEdit}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
 </UserControl>

@@ -18,11 +18,13 @@
         "runtime": {
           "lib/net8.0/BruTile.XmlSerializers.dll": {
             "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.0.0"
+            "fileVersion": "6.0.0.0",
+            "localPath": "BruTile.XmlSerializers.dll"
           },
           "lib/net8.0/BruTile.dll": {
             "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.0.0"
+            "fileVersion": "6.0.0.0",
+            "localPath": "BruTile.dll"
           }
         }
       },
@@ -30,7 +32,8 @@
         "runtime": {
           "lib/net8.0/ExCSS.dll": {
             "assemblyVersion": "4.3.1.0",
-            "fileVersion": "4.3.1.0"
+            "fileVersion": "4.3.1.0",
+            "localPath": "ExCSS.dll"
           }
         }
       },
@@ -42,7 +45,8 @@
         "runtime": {
           "lib/net8.0/HarfBuzzSharp.dll": {
             "assemblyVersion": "1.0.0.0",
-            "fileVersion": "8.3.1.3"
+            "fileVersion": "8.3.1.3",
+            "localPath": "HarfBuzzSharp.dll"
           }
         }
       },
@@ -54,22 +58,26 @@
           "runtimes/linux-arm/native/libHarfBuzzSharp.so": {
             "rid": "linux-arm",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-arm/native/libHarfBuzzSharp.so"
           },
           "runtimes/linux-arm64/native/libHarfBuzzSharp.so": {
             "rid": "linux-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-arm64/native/libHarfBuzzSharp.so"
           },
           "runtimes/linux-musl-x64/native/libHarfBuzzSharp.so": {
             "rid": "linux-musl-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-musl-x64/native/libHarfBuzzSharp.so"
           },
           "runtimes/linux-x64/native/libHarfBuzzSharp.so": {
             "rid": "linux-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-x64/native/libHarfBuzzSharp.so"
           }
         }
       },
@@ -78,7 +86,8 @@
           "runtimes/osx/native/libHarfBuzzSharp.dylib": {
             "rid": "osx",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/osx/native/libHarfBuzzSharp.dylib"
           }
         }
       },
@@ -87,32 +96,38 @@
           "runtimes/win-arm64/native/libHarfBuzzSharp.dll": {
             "rid": "win-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-arm64/native/libHarfBuzzSharp.dll"
           },
           "runtimes/win-arm64/native/libHarfBuzzSharp.pdb": {
             "rid": "win-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-arm64/native/libHarfBuzzSharp.pdb"
           },
           "runtimes/win-x64/native/libHarfBuzzSharp.dll": {
             "rid": "win-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x64/native/libHarfBuzzSharp.dll"
           },
           "runtimes/win-x64/native/libHarfBuzzSharp.pdb": {
             "rid": "win-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x64/native/libHarfBuzzSharp.pdb"
           },
           "runtimes/win-x86/native/libHarfBuzzSharp.dll": {
             "rid": "win-x86",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x86/native/libHarfBuzzSharp.dll"
           },
           "runtimes/win-x86/native/libHarfBuzzSharp.pdb": {
             "rid": "win-x86",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x86/native/libHarfBuzzSharp.pdb"
           }
         }
       },
@@ -120,7 +135,8 @@
         "runtime": {
           "lib/net8.0/Mapsui.dll": {
             "assemblyVersion": "5.1.0.0",
-            "fileVersion": "5.1.0.0"
+            "fileVersion": "5.1.0.0",
+            "localPath": "Mapsui.dll"
           }
         }
       },
@@ -134,7 +150,8 @@
         "runtime": {
           "lib/net8.0/Mapsui.Nts.dll": {
             "assemblyVersion": "5.1.0.0",
-            "fileVersion": "5.1.0.0"
+            "fileVersion": "5.1.0.0",
+            "localPath": "Mapsui.Nts.dll"
           }
         }
       },
@@ -155,7 +172,8 @@
         "runtime": {
           "lib/net8.0/Mapsui.Rendering.Skia.dll": {
             "assemblyVersion": "5.1.0.0",
-            "fileVersion": "5.1.0.0"
+            "fileVersion": "5.1.0.0",
+            "localPath": "Mapsui.Rendering.Skia.dll"
           }
         }
       },
@@ -167,7 +185,8 @@
         "runtime": {
           "lib/net8.0/Mapsui.Tiling.dll": {
             "assemblyVersion": "5.1.0.0",
-            "fileVersion": "5.1.0.0"
+            "fileVersion": "5.1.0.0",
+            "localPath": "Mapsui.Tiling.dll"
           }
         }
       },
@@ -191,7 +210,8 @@
         "runtime": {
           "lib/net8.0-windows7.0/Mapsui.UI.Wpf.dll": {
             "assemblyVersion": "5.1.0.0",
-            "fileVersion": "5.1.0.0"
+            "fileVersion": "5.1.0.0",
+            "localPath": "Mapsui.UI.Wpf.dll"
           }
         }
       },
@@ -199,7 +219,8 @@
         "runtime": {
           "lib/netstandard2.1/NetTopologySuite.dll": {
             "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.0.0.0"
+            "fileVersion": "2.0.0.0",
+            "localPath": "NetTopologySuite.dll"
           }
         }
       },
@@ -210,7 +231,8 @@
         "runtime": {
           "lib/netstandard2.0/NetTopologySuite.Features.dll": {
             "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.0.0.0"
+            "fileVersion": "2.0.0.0",
+            "localPath": "NetTopologySuite.Features.dll"
           }
         }
       },
@@ -223,7 +245,8 @@
         "runtime": {
           "lib/netstandard2.0/NetTopologySuite.IO.GeoJSON4STJ.dll": {
             "assemblyVersion": "4.0.0.0",
-            "fileVersion": "4.0.0.0"
+            "fileVersion": "4.0.0.0",
+            "localPath": "NetTopologySuite.IO.GeoJSON4STJ.dll"
           }
         }
       },
@@ -231,7 +254,8 @@
         "runtime": {
           "lib/net20/OpenTK.dll": {
             "assemblyVersion": "3.3.1.0",
-            "fileVersion": "3.3.1.0"
+            "fileVersion": "3.3.1.0",
+            "localPath": "OpenTK.dll"
           }
         }
       },
@@ -242,7 +266,8 @@
         "runtime": {
           "lib/net452/GLWpfControl.dll": {
             "assemblyVersion": "3.3.0.0",
-            "fileVersion": "3.3.0.0"
+            "fileVersion": "3.3.0.0",
+            "localPath": "GLWpfControl.dll"
           }
         }
       },
@@ -250,7 +275,8 @@
         "runtime": {
           "lib/net8.0/ShimSkiaSharp.dll": {
             "assemblyVersion": "3.2.1.0",
-            "fileVersion": "3.2.1.0"
+            "fileVersion": "3.2.1.0",
+            "localPath": "ShimSkiaSharp.dll"
           }
         }
       },
@@ -262,7 +288,8 @@
         "runtime": {
           "lib/net8.0/SkiaSharp.dll": {
             "assemblyVersion": "3.119.0.0",
-            "fileVersion": "3.119.2.0"
+            "fileVersion": "3.119.2.0",
+            "localPath": "SkiaSharp.dll"
           }
         }
       },
@@ -274,7 +301,8 @@
         "runtime": {
           "lib/net8.0/SkiaSharp.HarfBuzz.dll": {
             "assemblyVersion": "3.119.0.0",
-            "fileVersion": "3.119.2.0"
+            "fileVersion": "3.119.2.0",
+            "localPath": "SkiaSharp.HarfBuzz.dll"
           }
         }
       },
@@ -283,57 +311,68 @@
           "runtimes/linux-arm/native/libSkiaSharp.so": {
             "rid": "linux-arm",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-arm/native/libSkiaSharp.so"
           },
           "runtimes/linux-arm64/native/libSkiaSharp.so": {
             "rid": "linux-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-arm64/native/libSkiaSharp.so"
           },
           "runtimes/linux-loongarch64/native/libSkiaSharp.so": {
             "rid": "linux-loongarch64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-loongarch64/native/libSkiaSharp.so"
           },
           "runtimes/linux-musl-arm/native/libSkiaSharp.so": {
             "rid": "linux-musl-arm",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-musl-arm/native/libSkiaSharp.so"
           },
           "runtimes/linux-musl-arm64/native/libSkiaSharp.so": {
             "rid": "linux-musl-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-musl-arm64/native/libSkiaSharp.so"
           },
           "runtimes/linux-musl-loongarch64/native/libSkiaSharp.so": {
             "rid": "linux-musl-loongarch64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-musl-loongarch64/native/libSkiaSharp.so"
           },
           "runtimes/linux-musl-riscv64/native/libSkiaSharp.so": {
             "rid": "linux-musl-riscv64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-musl-riscv64/native/libSkiaSharp.so"
           },
           "runtimes/linux-musl-x64/native/libSkiaSharp.so": {
             "rid": "linux-musl-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-musl-x64/native/libSkiaSharp.so"
           },
           "runtimes/linux-riscv64/native/libSkiaSharp.so": {
             "rid": "linux-riscv64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-riscv64/native/libSkiaSharp.so"
           },
           "runtimes/linux-x64/native/libSkiaSharp.so": {
             "rid": "linux-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-x64/native/libSkiaSharp.so"
           },
           "runtimes/linux-x86/native/libSkiaSharp.so": {
             "rid": "linux-x86",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/linux-x86/native/libSkiaSharp.so"
           }
         }
       },
@@ -342,7 +381,8 @@
           "runtimes/osx/native/libSkiaSharp.dylib": {
             "rid": "osx",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/osx/native/libSkiaSharp.dylib"
           }
         }
       },
@@ -351,32 +391,38 @@
           "runtimes/win-arm64/native/libSkiaSharp.dll": {
             "rid": "win-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-arm64/native/libSkiaSharp.dll"
           },
           "runtimes/win-arm64/native/libSkiaSharp.pdb": {
             "rid": "win-arm64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-arm64/native/libSkiaSharp.pdb"
           },
           "runtimes/win-x64/native/libSkiaSharp.dll": {
             "rid": "win-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x64/native/libSkiaSharp.dll"
           },
           "runtimes/win-x64/native/libSkiaSharp.pdb": {
             "rid": "win-x64",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x64/native/libSkiaSharp.pdb"
           },
           "runtimes/win-x86/native/libSkiaSharp.dll": {
             "rid": "win-x86",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x86/native/libSkiaSharp.dll"
           },
           "runtimes/win-x86/native/libSkiaSharp.pdb": {
             "rid": "win-x86",
             "assetType": "native",
-            "fileVersion": "0.0.0.0"
+            "fileVersion": "0.0.0.0",
+            "localPath": "runtimes/win-x86/native/libSkiaSharp.pdb"
           }
         }
       },
@@ -387,7 +433,8 @@
         "runtime": {
           "lib/net8.0/SkiaSharp.Views.Desktop.Common.dll": {
             "assemblyVersion": "3.119.0.0",
-            "fileVersion": "3.119.2.0"
+            "fileVersion": "3.119.2.0",
+            "localPath": "SkiaSharp.Views.Desktop.Common.dll"
           }
         }
       },
@@ -401,7 +448,8 @@
         "runtime": {
           "lib/net462/SkiaSharp.Views.WPF.dll": {
             "assemblyVersion": "3.119.0.0",
-            "fileVersion": "3.119.2.0"
+            "fileVersion": "3.119.2.0",
+            "localPath": "SkiaSharp.Views.WPF.dll"
           }
         }
       },
@@ -412,7 +460,8 @@
         "runtime": {
           "lib/net8.0/Svg.Custom.dll": {
             "assemblyVersion": "3.2.1.0",
-            "fileVersion": "3.2.1.0"
+            "fileVersion": "3.2.1.0",
+            "localPath": "Svg.Custom.dll"
           }
         }
       },
@@ -424,7 +473,8 @@
         "runtime": {
           "lib/net8.0/Svg.Model.dll": {
             "assemblyVersion": "3.2.1.0",
-            "fileVersion": "3.2.1.0"
+            "fileVersion": "3.2.1.0",
+            "localPath": "Svg.Model.dll"
           }
         }
       },
@@ -437,7 +487,8 @@
         "runtime": {
           "lib/net8.0/Svg.Skia.dll": {
             "assemblyVersion": "3.2.1.0",
-            "fileVersion": "3.2.1.0"
+            "fileVersion": "3.2.1.0",
+            "localPath": "Svg.Skia.dll"
           }
         }
       },
@@ -445,7 +496,8 @@
         "runtime": {
           "lib/net8.0/System.IO.Pipelines.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.24.52809"
+            "fileVersion": "9.0.24.52809",
+            "localPath": "System.IO.Pipelines.dll"
           }
         }
       },
@@ -453,7 +505,8 @@
         "runtime": {
           "lib/net8.0/System.Text.Encodings.Web.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.24.52809"
+            "fileVersion": "9.0.24.52809",
+            "localPath": "System.Text.Encodings.Web.dll"
           }
         },
         "runtimeTargets": {
@@ -461,7 +514,8 @@
             "rid": "browser",
             "assetType": "runtime",
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.24.52809"
+            "fileVersion": "9.0.24.52809",
+            "localPath": "runtimes/browser/lib/net8.0/System.Text.Encodings.Web.dll"
           }
         }
       },
@@ -473,7 +527,8 @@
         "runtime": {
           "lib/net8.0/System.Text.Json.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.24.52809"
+            "fileVersion": "9.0.24.52809",
+            "localPath": "System.Text.Json.dll"
           }
         }
       },
@@ -487,7 +542,8 @@
         "runtime": {
           "lib/net5.0/Topten.RichTextKit.dll": {
             "assemblyVersion": "0.4.167.0",
-            "fileVersion": "0.4.167.0"
+            "fileVersion": "0.4.167.0",
+            "localPath": "Topten.RichTextKit.dll"
           }
         }
       }

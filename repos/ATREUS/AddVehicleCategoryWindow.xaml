@@ -1,0 +1,36 @@
+<Window x:Class="ATREUS.AddVehicleCategoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Créer une catégorie de véhicule" Width="460" Height="390"
+        WindowStartupLocation="CenterOwner" Background="#06151D" Foreground="#E8EEF0">
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,18">
+            <TextBlock Text="ATREUS · PERSONNALISATION DU PARC" Foreground="#C8A24A" FontSize="11" />
+            <TextBlock Text="Créer une catégorie" FontSize="25" FontWeight="Bold" Margin="0,6,0,0" />
+            <TextBlock Text="La catégorie et son icône seront réutilisables dans tout le parc." Foreground="#A9BBC0" FontSize="12" Margin="0,5,0,0" />
+        </StackPanel>
+        <Border Grid.Row="1" Background="#0B222D" BorderBrush="#214451" BorderThickness="1" CornerRadius="9" Padding="18">
+            <StackPanel>
+                <TextBlock Text="Nom de la catégorie" Foreground="#A9BBC0" FontSize="11" Margin="0,0,0,5" />
+                <TextBox x:Name="NameInput" Background="#06151D" Foreground="White" BorderBrush="#214451" Padding="10,8" Margin="0,0,0,16" />
+                <TextBlock Text="Émoticône" Foreground="#A9BBC0" FontSize="11" Margin="0,0,0,5" />
+                <ComboBox x:Name="EmojiInput" SelectedIndex="0" Background="#06151D" Foreground="White" BorderBrush="#214451" Padding="8">
+                    <ComboBoxItem Content="🚘  Véhicule" Tag="🚘" />
+                    <ComboBoxItem Content="🚗  Voiture" Tag="🚗" />
+                    <ComboBoxItem Content="🚚  Camion" Tag="🚚" />
+                    <ComboBoxItem Content="🚐  Utilitaire" Tag="🚐" />
+                    <ComboBoxItem Content="🏍️  Deux-roues" Tag="🏍️" />
+                    <ComboBoxItem Content="🚌  Transport collectif" Tag="🚌" />
+                    <ComboBoxItem Content="🚜  Engin" Tag="🚜" />
+                    <ComboBoxItem Content="🚑  Intervention" Tag="🚑" />
+                    <ComboBoxItem Content="🚒  Secours" Tag="🚒" />
+                </ComboBox>
+            </StackPanel>
+        </Border>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Annuler" Padding="14,8" Margin="0,0,8,0" Click="CancelClick" />
+            <Button Content="Créer la catégorie" Padding="14,8" Background="#C8A24A" Foreground="#06151D" BorderThickness="0" Click="CreateClick" />
+        </StackPanel>
+    </Grid>
+</Window>

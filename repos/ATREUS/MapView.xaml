@@ -1,37 +1,97 @@
 <UserControl x:Class="ATREUS.MapView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mapsui="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
-             Background="#06151D">
-    <UserControl.Resources>
-        <SolidColorBrush x:Key="PanelBrush" Color="#091D27" />
-        <SolidColorBrush x:Key="CardBrush" Color="#0B222D" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#214451" />
-        <SolidColorBrush x:Key="MutedBrush" Color="#A9BBC0" />
-        <SolidColorBrush x:Key="GoldBrush" Color="#C8A24A" />
-    </UserControl.Resources>
+             xmlns:webview="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             Background="{StaticResource PageBrush}">
     <Grid Margin="30,28,42,40">
-        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-        <StackPanel Margin="0,0,0,20"><TextBlock Text="ATREUS · CARTOGRAPHIE OPÉRATIONNELLE" Foreground="{StaticResource GoldBrush}" FontSize="11" /><TextBlock Text="Carte opérationnelle" FontSize="34" FontWeight="Bold" Margin="0,8,0,4" /><TextBlock Text="Positionnement fictif des moyens du 12e Régiment Orion." Foreground="{StaticResource MutedBrush}" FontSize="13" /><StackPanel Orientation="Horizontal" Margin="0,14,0,0"><Button x:Name="ConceptualModeButton" Content="Conceptuelle" Padding="12,6" Margin="0,0,8,0" Click="ConceptualModeClick" /><Button x:Name="SatelliteModeButton" Content="Satellite" Padding="12,6" Click="SatelliteModeClick" /></StackPanel></StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Margin="0,0,0,18">
+            <StackPanel>
+                <TextBlock Text="ATREUS · CARTOGRAPHIE OPÉRATIONNELLE" Foreground="{StaticResource GoldBrush}" FontSize="11" />
+                <TextBlock Text="ATREMAPS" FontSize="34" FontWeight="Bold" Margin="0,8,0,4" />
+                <TextBlock Text="Globe 3D satellite interactif · véhicules, chauffeurs, opérations et sites personnalisés." Foreground="{StaticResource MutedBrush}" FontSize="13" />
+            </StackPanel>
+            <Button Content="＋  Ajouter un site" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="14,10"
+                    Background="{StaticResource GoldBrush}" Foreground="{StaticResource PageBrush}" BorderThickness="0" FontWeight="SemiBold" Click="AddSiteClick" />
+        </Grid>
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="290" /></Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Background="#0A202A" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,0,18,0" ClipToBounds="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,0,16,0" ClipToBounds="True">
                 <Grid>
-                    <Border Background="#0B252D">
-                        <mapsui:MapControl x:Name="SatelliteMap" Background="#0B252D" Visibility="Collapsed" />
+                    <webview:WebView2 x:Name="GlobeBrowser" DefaultBackgroundColor="#06151D" />
+                    <Border HorizontalAlignment="Left" VerticalAlignment="Top" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Margin="14" Padding="9">
+                        <TextBlock x:Name="GlobeStatus" Text="GLOBE · CHARGEMENT…" Foreground="{StaticResource GoldBrush}" FontSize="10" />
                     </Border>
-                    <Canvas x:Name="MapCanvas" Background="#0B252D">
-                        <Path Data="M 0,120 L 190,45 L 390,75 L 560,25 L 790,95 L 950,30 L 1150,130 L 1150,230 L 990,270 L 810,220 L 620,290 L 420,235 L 220,280 L 0,220 Z" Fill="#0D3036" /><Path Data="M 0,370 L 150,310 L 330,350 L 500,300 L 720,365 L 920,315 L 1150,370 L 1150,470 L 950,530 L 760,485 L 550,540 L 320,480 L 0,525 Z" Fill="#0D3036" /><Path Data="M 0,120 L 1150,500" Stroke="#24525A" StrokeThickness="2" /><Path Data="M 70,0 L 400,600" Stroke="#24525A" StrokeThickness="2" /><Path Data="M 720,0 L 540,600" Stroke="#24525A" StrokeThickness="2" /><Path Data="M 0,430 L 1150,90" Stroke="#24525A" StrokeThickness="2" />
-                        <Border Canvas.Left="90" Canvas.Top="125" Width="285" Height="145" Background="#102B34" BorderBrush="#37636A" BorderThickness="1" CornerRadius="4"><StackPanel Margin="14"><TextBlock Text="BASE ORION" Foreground="#E5C35B" FontSize="12" FontWeight="Bold" /><TextBlock Text="Quartier général" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,8,0,0" /><Border Height="1" Background="#37636A" Margin="0,10" /><TextBlock Text="Bâtiment administratif" Foreground="#D8E2E5" FontSize="11" /><TextBlock Text="Poste de commandement" Foreground="#D8E2E5" FontSize="11" Margin="0,5,0,0" /></StackPanel></Border>
-                        <Border Canvas.Left="520" Canvas.Top="90" Width="230" Height="110" Background="#102B34" BorderBrush="#37636A" BorderThickness="1" CornerRadius="4"><StackPanel Margin="14"><TextBlock Text="ZONE TECHNIQUE" Foreground="#E5C35B" FontSize="12" FontWeight="Bold" /><TextBlock Text="Ateliers et maintenance" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,8,0,0" /><TextBlock Text="Accès contrôlé" Foreground="#D8E2E5" FontSize="11" Margin="0,5,0,0" /></StackPanel></Border>
-                        <Border Canvas.Left="410" Canvas.Top="350" Width="280" Height="115" Background="#102B34" BorderBrush="#37636A" BorderThickness="1" CornerRadius="4"><StackPanel Margin="14"><TextBlock Text="PARC VÉHICULES" Foreground="#E5C35B" FontSize="12" FontWeight="Bold" /><TextBlock Text="Stationnement principal" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,8,0,0" /><TextBlock Text="Entrée logistique · Porte Sud" Foreground="#D8E2E5" FontSize="11" Margin="0,5,0,0" /></StackPanel></Border>
-                        <Canvas x:Name="VehicleLayer" />
-                    </Canvas>
-                    <Border HorizontalAlignment="Left" VerticalAlignment="Top" Background="#091D27" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Margin="16" Padding="10"><StackPanel><TextBlock Text="CARTE DE LA BASE" Foreground="{StaticResource GoldBrush}" FontSize="10" /><TextBlock Text="Vue tactique · Données fictives" Foreground="{StaticResource MutedBrush}" FontSize="10" Margin="0,4,0,0" /></StackPanel></Border>
-                    <TextBlock Text="© Esri, Maxar, Earthstar Geographics" HorizontalAlignment="Right" VerticalAlignment="Bottom" Foreground="White" Background="#9906151D" FontSize="10" Padding="5" Margin="0,0,8,8" />
+                    <TextBlock Text="© Esri · Maxar · Earthstar Geographics · CesiumJS" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                               Foreground="White" Background="#AA06151D" FontSize="10" Padding="5" Margin="0,0,8,8" />
                 </Grid>
             </Border>
-            <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18"><StackPanel><TextBlock Text="MOYENS LOCALISÉS" Foreground="{StaticResource GoldBrush}" FontSize="11" /><TextBlock Text="{Binding Count, StringFormat={}{0} véhicules affichés}" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,6,0,18" /><TextBlock Text="LÉGENDE" Foreground="{StaticResource GoldBrush}" FontSize="10" /><StackPanel Orientation="Horizontal" Margin="0,10,0,18"><Ellipse Width="10" Height="10" Fill="#7CCB9B" /><TextBlock Text=" Disponible" Foreground="{StaticResource MutedBrush}" Margin="7,0,18,0" /><Ellipse Width="10" Height="10" Fill="#E2A05A" /><TextBlock Text=" Maintenance" Foreground="{StaticResource MutedBrush}" /></StackPanel><ItemsControl ItemsSource="{Binding Vehicles}"><ItemsControl.ItemTemplate><DataTemplate><Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,8" Cursor="Hand" MouseLeftButtonDown="VehicleListItemClick"><StackPanel><Grid><TextBlock Text="{Binding Identifier}" FontWeight="Bold" /><TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" HorizontalAlignment="Right" FontSize="11" /></Grid><TextBlock Text="{Binding Location}" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></Border>
+            <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="VUE D’ENSEMBLE" Foreground="{StaticResource GoldBrush}" FontSize="11" />
+                        <TextBlock x:Name="OverviewLabel" Foreground="{StaticResource TextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,10" />
+                        <TextBlock Text="VÉHICULES LOCALISÉS" Foreground="{StaticResource GoldBrush}" FontSize="11" />
+                        <TextBlock x:Name="CountLabel" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,5,0,10" />
+                        <ItemsControl x:Name="VehicleList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Tag="{Binding Vehicle}" HorizontalContentAlignment="Stretch" Padding="9" Margin="0,0,0,6"
+                                            Background="{StaticResource CardBrush}" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource BorderBrush}" Click="VehicleClick">
+                                        <StackPanel>
+                                            <Grid>
+                                                <TextBlock Text="{Binding Vehicle.Identifier}" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Vehicle.State}" Foreground="{Binding Vehicle.StateColor}" HorizontalAlignment="Right" FontSize="11" />
+                                            </Grid>
+                                            <TextBlock Text="{Binding City}" Foreground="{StaticResource GoldBrush}" FontSize="12" Margin="0,4,0,0" />
+                                            <TextBlock Text="{Binding Driver}" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding Vehicle.TypeDisplay}" Foreground="{StaticResource MutedBrush}" FontSize="10" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding VehicleDescription}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding OperationalInfo}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,8,0,12" />
+                        <TextBlock Text="SITES PERSONNALISÉS" Foreground="{StaticResource GoldBrush}" FontSize="11" />
+                        <TextBlock x:Name="SiteCountLabel" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,5,0,10" />
+                        <ItemsControl x:Name="SiteList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#0B222D" BorderBrush="#214451" BorderThickness="1" CornerRadius="5" Padding="7" Margin="0,0,0,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Button Tag="{Binding Site}" HorizontalContentAlignment="Left" Padding="2" Background="Transparent"
+                                                    Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="SiteClick">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding Coordinates}" Foreground="{StaticResource MutedBrush}" FontSize="10" Margin="0,3,0,0" />
+                                                    <TextBlock Text="{Binding Details}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Grid.Column="1" Tag="{Binding Site}" Content="✎" ToolTip="Modifier le site" Padding="7,3" Margin="3,0,0,0"
+                                                    Background="{StaticResource CardBrush}" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource BorderBrush}" Click="EditSiteClick" />
+                                            <Button Grid.Column="2" Tag="{Binding Site}" Content="×" ToolTip="Supprimer le site" Padding="7,3" Margin="3,0,0,0"
+                                                    Background="{StaticResource CardBrush}" Foreground="{StaticResource DangerBrush}" BorderBrush="{StaticResource BorderBrush}" Click="DeleteSiteClick" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

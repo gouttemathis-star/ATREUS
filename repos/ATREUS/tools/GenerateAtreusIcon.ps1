@@ -2,33 +2,30 @@ Add-Type -AssemblyName System.Drawing
 
 $outputDirectory = Join-Path $PSScriptRoot '..\Assets'
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
+$sourceLogo = [System.Drawing.Bitmap]::new((Join-Path $outputDirectory 'atreus-logo.png'))
 
 function New-LogoPng([int]$size) {
     $bitmap = [System.Drawing.Bitmap]::new($size, $size, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-    $graphics.Clear([System.Drawing.Color]::Transparent)
+    $graphics.Clear([System.Drawing.Color]::FromArgb(4, 10, 14))
 
-    $shield = [System.Drawing.Point[]]@(
-        [System.Drawing.Point]::new([int]($size * .18), [int]($size * .10)),
-        [System.Drawing.Point]::new([int]($size * .82), [int]($size * .10)),
-        [System.Drawing.Point]::new([int]($size * .82), [int]($size * .56)),
-        [System.Drawing.Point]::new([int]($size * .50), [int]($size * .90)),
-        [System.Drawing.Point]::new([int]($size * .18), [int]($size * .56))
+    $sourceRectangle = [System.Drawing.Rectangle]::new(
+        [int]($sourceLogo.Width * .27),
+        [int]($sourceLogo.Height * .12),
+        [int]($sourceLogo.Width * .46),
+        [int]($sourceLogo.Height * .56)
     )
-    $graphics.FillPolygon([System.Drawing.Brushes]::MidnightBlue, $shield)
-    $graphics.DrawPolygon([System.Drawing.Pen]::new([System.Drawing.Color]::FromArgb(180, 42, 91, 105), [Math]::Max(1, $size / 32)), $shield)
-
-    $center = $size / 2
-    $outer = $size * .22
-    $inner = $size * .09
-    $star = [System.Drawing.Point[]]::new(10)
-    for ($index = 0; $index -lt 10; $index++) {
-        $angle = -[Math]::PI / 2 + $index * [Math]::PI / 5
-        $radius = if ($index % 2 -eq 0) { $outer } else { $inner }
-        $star[$index] = [System.Drawing.Point]::new([int]($center + [Math]::Cos($angle) * $radius), [int]($center + [Math]::Sin($angle) * $radius))
-    }
-    $graphics.FillPolygon([System.Drawing.Brushes]::Gold, $star)
+    $scale = [Math]::Min(($size * .94) / $sourceRectangle.Width, ($size * .84) / $sourceRectangle.Height)
+    $drawWidth = [int]($sourceRectangle.Width * $scale)
+    $drawHeight = [int]($sourceRectangle.Height * $scale)
+    $destinationRectangle = [System.Drawing.Rectangle]::new(
+        [int](($size - $drawWidth) / 2),
+        [int](($size - $drawHeight) / 2),
+        $drawWidth,
+        $drawHeight
+    )
+    $graphics.DrawImage($sourceLogo, $destinationRectangle, $sourceRectangle, [System.Drawing.GraphicsUnit]::Pixel)
     $graphics.Dispose()
 
     $stream = [System.IO.MemoryStream]::new()
@@ -51,4 +48,4 @@ foreach ($image in $images) {
 }
 foreach ($image in $images) { $writer.Write($image.Data) }
 [System.IO.File]::WriteAllBytes((Join-Path $outputDirectory 'atreus.ico'), $header.ToArray())
-$writer.Dispose(); $header.Dispose()
+$writer.Dispose(); $header.Dispose(); $sourceLogo.Dispose()

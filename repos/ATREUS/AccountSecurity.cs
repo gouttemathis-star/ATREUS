@@ -1,0 +1,94 @@
+using System.Security.Cryptography;
+
+namespace ATREUS;
+
+public static class AccountSecurity
+{
+    private const int SaltSize = 16;
+    private const int HashSize = 32;
+    private const int Iterations = 210_000;
+
+    public static UserAccount CreateAccount(
+        ApplicationData data,
+        string userName,
+        string displayName,
+        string role,
+        string? driverId,
+        string password)
+    {
+        userName = userName.Trim();
+        displayName = displayName.Trim();
+
+        if (userName.Length < 3)
+        {
+            throw new ArgumentException("L’identifiant doit contenir au moins 3 caractères.");
+        }
+        if (displayName.Length == 0)
+        {
+            throw new ArgumentException("Le nom affiché est obligatoire.");
+        }
+        if (!UserRoles.All.Contains(role, StringComparer.Ordinal))
+        {
+            throw new ArgumentException("Le rôle sélectionné n’est pas valide.");
+        }
+        if (data.Users.Any(user => string.Equals(user.UserName, userName, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException("Cet identifiant existe déjà.");
+        }
+        if (role == UserRoles.Driver && data.FindDriver(driverId) is null)
+        {
+            throw new ArgumentException("Un compte conducteur doit être associé à une fiche chauffeur.");
+        }
+        if (role == UserRoles.Driver && data.Users.Any(user =>
+            user.IsEnabled && user.Role == UserRoles.Driver && user.DriverId == driverId))
+        {
+            throw new ArgumentException("Un compte actif est déjà associé à cette fiche chauffeur.");
+        }
+        if (password.Length < 10)
+        {
+            throw new ArgumentException("Le mot de passe doit contenir au moins 10 caractères.");
+        }
+
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
+        return new UserAccount
+        {
+            UserName = userName,
+            DisplayName = displayName,
+            Role = role,
+            DriverId = role == UserRoles.Driver ? driverId : null,
+            PasswordSalt = Convert.ToBase64String(salt),
+            PasswordHash = Convert.ToBase64String(hash)
+        };
+    }
+
+    public static UserAccount? Authenticate(ApplicationData data, string userName, string password)
+    {
+        var user = data.Users.FirstOrDefault(candidate =>
+            candidate.IsEnabled &&
+            string.Equals(candidate.UserName, userName.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (user is null ||
+            !Convert.TryFromBase64String(user.PasswordSalt, new byte[SaltSize], out var saltLength) ||
+            saltLength != SaltSize)
+        {
+            return null;
+        }
+
+        var salt = Convert.FromBase64String(user.PasswordSalt);
+        byte[] expectedHash;
+        try
+        {
+            expectedHash = Convert.FromBase64String(user.PasswordHash);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
+        var suppliedHash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
+        return expectedHash.Length == suppliedHash.Length &&
+               CryptographicOperations.FixedTimeEquals(expectedHash, suppliedHash)
+            ? user
+            : null;
+    }
+}

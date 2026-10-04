@@ -5,31 +5,122 @@ namespace ATREUS;
 
 public partial class OperationsView : UserControl
 {
-    private bool maintenanceMode;
-    private IReadOnlyList<Vehicle> vehicles = [];
+    private ApplicationData? data;
+    private string kind = OperationKinds.Incident;
+    private bool canManage;
+    public event Action<Vehicle>? VehicleRequested;
+    public event Action<Driver>? DriverRequested;
 
     public OperationsView()
     {
         InitializeComponent();
     }
 
-    public void ShowData(IReadOnlyList<Vehicle> sourceVehicles, bool maintenance)
+    public void ShowData(ApplicationData source, string operationKind, bool canManage)
     {
-        vehicles = sourceVehicles;
-        maintenanceMode = maintenance;
-        TitleLabel.Text = maintenance ? "Maintenance" : "Incidents";
-        SectionLabel.Text = maintenance ? "ATREUS · SUIVI TECHNIQUE" : "ATREUS · SUIVI OPÉRATIONNEL";
-        var entries = maintenance
-            ? vehicles.Where(vehicle => vehicle.State == "Maintenance").Select((vehicle, index) => new OperationEntry($"MAI-{index + 1:000}", vehicle.Identifier, "Opération de maintenance", vehicle.State, "23/09/2026"))
-            : vehicles.Where(vehicle => vehicle.State != "Disponible").Select((vehicle, index) => new OperationEntry($"INC-{index + 1:000}", vehicle.Identifier, "Anomalie à traiter", vehicle.State, "23/09/2026"));
-        EntriesList.ItemsSource = entries.ToList();
-        CountLabel.Text = $"{EntriesList.Items.Count} entrée(s)";
+        data = source;
+        kind = operationKind;
+        this.canManage = canManage;
+        AddOperationButton.Visibility = canManage ? Visibility.Visible : Visibility.Collapsed;
+        TitleLabel.Text = operationKind switch
+        {
+            OperationKinds.Maintenance => "Maintenance",
+            OperationKinds.Trip => "Trajets",
+            _ => "Incidents"
+        };
+        SectionLabel.Text = operationKind == OperationKinds.Maintenance ? "ATREUS · SUIVI TECHNIQUE" : "ATREUS · SUIVI OPÉRATIONNEL";
+        Refresh();
+    }
+
+    public void Refresh()
+    {
+        if (data is null)
+        {
+            return;
+        }
+
+        var rows = data.Operations.Where(operation => operation.Kind == kind)
+            .OrderByDescending(operation => operation.Date)
+            .Select(operation =>
+            {
+                var vehicle = data.FindVehicle(operation.VehicleId);
+                return new OperationRow(
+                    operation,
+                    vehicle,
+                    data.FindDriver(operation.DriverId),
+                    vehicle?.Identifier ?? "Véhicule supprimé",
+                    data.DriverName(operation.DriverId),
+                    operation.Date.ToString("dd/MM/yyyy") + (string.IsNullOrWhiteSpace(operation.Time) ? string.Empty : $" · {operation.Time}"),
+                    canManage);
+            }).ToList();
+        EntriesList.ItemsSource = rows;
+        CountLabel.Text = $"{rows.Count} {TitleLabel.Text.ToLowerInvariant()}";
     }
 
     private void AddClick(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("Le formulaire détaillé sera ajouté avec la persistance des données.", TitleLabel.Text, MessageBoxButton.OK, MessageBoxImage.Information);
+        if (data is null || !canManage)
+        {
+            return;
+        }
+        var dialog = new OperationEditWindow(null, kind, data) { Owner = Window.GetWindow(this) };
+        if (dialog.ShowDialog() == true)
+        {
+            Refresh();
+        }
     }
-}
 
-public sealed record OperationEntry(string Number, string VehicleIdentifier, string Nature, string Status, string Date);
+    private void EntryClick(object sender, RoutedEventArgs e)
+    {
+        if (canManage && (sender as FrameworkElement)?.Tag is OperationRecord operation && data is not null)
+        {
+            var dialog = new OperationEditWindow(operation, operation.Kind, data) { Owner = Window.GetWindow(this) };
+            if (dialog.ShowDialog() == true)
+            {
+                Refresh();
+            }
+        }
+    }
+
+    private void VehicleClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is Vehicle vehicle)
+        {
+            VehicleRequested?.Invoke(vehicle);
+            Refresh();
+        }
+    }
+
+    private void DriverClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is Driver driver)
+        {
+            DriverRequested?.Invoke(driver);
+        }
+    }
+
+    private void DeleteClick(object sender, RoutedEventArgs e)
+    {
+        if (!canManage || (sender as FrameworkElement)?.Tag is not OperationRecord operation || data is null)
+        {
+            return;
+        }
+        if (MessageBox.Show($"Supprimer {operation.Number} ?", "Confirmer la suppression", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+        data.Operations.Remove(operation);
+        foreach (var incident in data.Operations.Where(item => item.TripId == operation.Id))
+        {
+            incident.TripId = null;
+        }
+        foreach (var task in data.Tasks.Where(task => task.OperationId == operation.Id))
+        {
+            task.OperationId = null;
+        }
+        ApplicationDataStore.Save(data);
+        Refresh();
+    }
+
+    private sealed record OperationRow(OperationRecord Operation, Vehicle? Vehicle, Driver? Driver, string VehicleIdentifier, string DriverName, string DateTimeLabel, bool CanEdit);
+}

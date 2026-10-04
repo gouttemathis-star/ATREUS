@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -10,176 +10,299 @@ using System.Windows.Media;
 
 namespace ATREUS;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    private readonly List<Vehicle> vehicles =
-    [
-        new("VLT-OR-021", "Terrestre", "Disponible", "Véhicule tactique Orion", "#7CCB9B") { Plate = "OR-021-VT" },
-        new("VBL-VM-014", "Terrestre", "Disponible", "Véhicule blindé léger Valmour", "#7CCB9B") { Plate = "VM-014-VB" },
-        new("TRP-HC-044", "Terrestre", "Disponible", "Transporteur Hautclair", "#7CCB9B") { Plate = "HC-044-TR" },
-        new("VBC-OR-117", "Terrestre", "Indisponible", "Véhicule de commandement Orion", "#E28076") { Plate = "OR-117-VC" },
-        new("AER-OR-014", "Aérien", "Disponible", "Moyen aérien Orion", "#7CCB9B") { Plate = "AE-014-OR" },
-        new("NAV-OR-002", "Maritime", "Maintenance", "Moyen maritime Orion", "#E2A05A") { Plate = "OR-002-NA" }
-    ];
-
+    private readonly ApplicationData data;
+    private readonly UserAccount currentUser;
     public ObservableCollection<Vehicle> VisibleVehicles { get; } = [];
     public ObservableCollection<Vehicle> AlertVehicles { get; } = [];
-    public ObservableCollection<Unit> Units { get; } =
-    [
-        new("12e Régiment Orion", "Armée de Terre · Parc Orion", 842, 6),
-        new("Groupe Aérien Atlas", "Moyens aériens · Base Nord", 126, 0),
-        new("Escadre Maritime Nérée", "Moyens maritimes · Port Sud", 214, 0)
-    ];
-    public int ReferenceCount => vehicles.Count;
-    public int AvailableCount => vehicles.Count(vehicle => vehicle.State == "Disponible");
-    public int MaintenanceCount => vehicles.Count(vehicle => vehicle.State == "Maintenance");
-    public int UnavailableCount => vehicles.Count(vehicle => vehicle.State == "Indisponible");
+    public int ReferenceCount => data.Vehicles.Count;
+    public int AvailableCount => data.Vehicles.Count(vehicle => vehicle.State == "Disponible");
+    public int MaintenanceCount => data.Vehicles.Count(vehicle => vehicle.State == "Maintenance");
+    public int UnavailableCount => data.Vehicles.Count(vehicle => vehicle.State == "Indisponible");
     public string AvailabilityPercentage => ReferenceCount == 0 ? "0 %" : $"{AvailableCount * 100 / ReferenceCount} %";
     public int AlertCount => MaintenanceCount + UnavailableCount;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private string searchQuery = string.Empty;
+    private bool refreshingTypeFilter;
+    private string? selectedVehicleType;
 
-    public MainWindow()
+    public MainWindow(ApplicationData data, UserAccount currentUser)
     {
+        this.data = data;
+        this.currentUser = currentUser;
         InitializeComponent();
         DataContext = this;
+        ConfigureRoleAccess();
+        RefreshTypeFilter();
         RefreshVehicles();
-        SetActiveNavigation(DashboardNavButton);
         EmbeddedMapView.VehicleSelected += MapVehicleSelected;
+        MaterialView.VehicleRequested += OpenVehicle;
+        OperationsView.VehicleRequested += OpenVehicle;
+        OperationsView.DriverRequested += OpenDriver;
+        CalendarView.VehicleRequested += OpenVehicle;
+        CalendarView.DriverRequested += OpenDriver;
+        if (currentUser.Role == UserRoles.Driver)
+        {
+            DriverPlanningClick(this, new RoutedEventArgs());
+        }
+        else if (UserRoles.Get(currentUser.Role).Dashboard)
+        {
+            DashboardClick(this, new RoutedEventArgs());
+        }
+        else if (UserRoles.Get(currentUser.Role).Fleet)
+        {
+            MaterialClick(this, new RoutedEventArgs());
+        }
+        else if (UserRoles.Get(currentUser.Role).Maintenance)
+        {
+            MaintenanceClick(this, new RoutedEventArgs());
+        }
+        else if (UserRoles.Get(currentUser.Role).Incidents)
+        {
+            IncidentsClick(this, new RoutedEventArgs());
+        }
+        else if (UserRoles.Get(currentUser.Role).Calendar)
+        {
+            CalendarClick(this, new RoutedEventArgs());
+        }
+        else
+        {
+            MapClick(this, new RoutedEventArgs());
+        }
     }
 
-    private void FilterChanged(object sender, SelectionChangedEventArgs e)
+    private void ConfigureRoleAccess()
     {
+        SessionNameLabel.Text = currentUser.DisplayName.ToUpperInvariant();
+        SessionRoleLabel.Text = UserRoles.Display(currentUser.Role);
+        var isDriver = currentUser.Role == UserRoles.Driver;
+        var permissions = UserRoles.Get(currentUser.Role);
+        DashboardNavButton.Visibility = VisibleIf(permissions.Dashboard);
+        MapNavButton.Visibility = VisibleIf(permissions.Map);
+        MaterialNavButton.Visibility = VisibleIf(permissions.Fleet);
+        IncidentsNavButton.Visibility = VisibleIf(permissions.Incidents);
+        MaintenanceNavButton.Visibility = VisibleIf(permissions.Maintenance);
+        CalendarNavButton.Visibility = VisibleIf(permissions.Calendar);
+        DriverPlanningNavButton.Visibility = isDriver ? Visibility.Visible : Visibility.Collapsed;
+        AccountsNavButton.Visibility = VisibleIf(permissions.ManageAccounts);
+        AddVehicleButton.Visibility = VisibleIf(permissions.ManageFleet);
+        ExportCsvButton.Visibility = VisibleIf(permissions.Export);
+        FleetHeader.Visibility = VisibleIf(permissions.Fleet || permissions.Incidents || permissions.Maintenance || permissions.Calendar);
+        PilotageHeader.Text = isDriver ? "ESPACE CONDUCTEUR" : UserRoles.Display(currentUser.Role).ToUpperInvariant();
+        AssistanceHeader.Visibility = Visibility.Visible;
+    }
+
+    private static Visibility VisibleIf(bool allowed) => allowed ? Visibility.Visible : Visibility.Collapsed;
+
+    private void FilterChanged(object sender, SelectionChangedEventArgs e) => RefreshVehicles();
+
+    private void RefreshTypeFilter(string? selectedType = null)
+    {
+        if (TypeFilter is null)
+        {
+            return;
+        }
+
+        refreshingTypeFilter = true;
+        TypeFilter.Items.Clear();
+        TypeFilter.Items.Add(new ComboBoxItem { Content = "Tous les types" });
+        foreach (var category in data.VehicleCategories)
+        {
+            TypeFilter.Items.Add(new ComboBoxItem { Content = category.Display, Tag = category.Name });
+        }
+        if (UserRoles.Get(currentUser.Role).ManageFleet)
+        {
+            TypeFilter.Items.Add(new ComboBoxItem { Content = "➕  Créer une catégorie de véhicule…", Tag = VehicleTypes.CreateCategoryAction });
+        }
+        TypeFilter.SelectedItem = selectedType is null
+            ? TypeFilter.Items[0]
+            : TypeFilter.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag as string == selectedType) ?? TypeFilter.Items[0];
+        selectedVehicleType = (TypeFilter.SelectedItem as ComboBoxItem)?.Tag as string;
+        refreshingTypeFilter = false;
+    }
+
+    private void TypeFilterSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (refreshingTypeFilter)
+        {
+            return;
+        }
+        if (TypeFilter.SelectedItem is not ComboBoxItem item || item.Tag as string != VehicleTypes.CreateCategoryAction)
+        {
+            selectedVehicleType = (TypeFilter.SelectedItem as ComboBoxItem)?.Tag as string;
+            RefreshVehicles();
+            return;
+        }
+
+        if (!UserRoles.Get(currentUser.Role).ManageFleet)
+        {
+            RefreshTypeFilter(selectedVehicleType);
+            return;
+        }
+
+        var dialog = new AddVehicleCategoryWindow(data) { Owner = this };
+        if (dialog.ShowDialog() == true && dialog.CreatedCategory is VehicleCategory category)
+        {
+            RefreshTypeFilter(category.Name);
+        }
+        else
+        {
+            RefreshTypeFilter(selectedVehicleType);
+        }
         RefreshVehicles();
     }
 
     private void MapClick(object sender, RoutedEventArgs e)
     {
+        if (!UserRoles.Get(currentUser.Role).Map) return;
         HideAllViews();
-        DashboardView.Visibility = Visibility.Collapsed;
+        EmbeddedMapView.ShowVehicles(data);
         EmbeddedMapView.Visibility = Visibility.Visible;
-        EmbeddedMapView.ShowVehicles(vehicles);
         SetActiveNavigation(MapNavButton);
     }
 
     private void DashboardClick(object sender, RoutedEventArgs e)
     {
+        if (!UserRoles.Get(currentUser.Role).Dashboard) return;
         HideAllViews();
-        EmbeddedMapView.Visibility = Visibility.Collapsed;
         DashboardView.Visibility = Visibility.Visible;
         SetActiveNavigation(DashboardNavButton);
     }
 
-    private void UnitsClick(object sender, RoutedEventArgs e)
-    {
-        HideAllViews();
-        UnitsView.Visibility = Visibility.Visible;
-        SetActiveNavigation(UnitsNavButton);
-    }
-
     private void MaterialClick(object sender, RoutedEventArgs e)
     {
+        if (!UserRoles.Get(currentUser.Role).Fleet) return;
         HideAllViews();
-        MaterialView.ShowVehicles(vehicles);
+        MaterialView.ShowVehicles(data);
         MaterialView.Visibility = Visibility.Visible;
         SetActiveNavigation(MaterialNavButton);
     }
 
-    private void IncidentsClick(object sender, RoutedEventArgs e) => ShowOperations(false, IncidentsNavButton);
+    private void IncidentsClick(object sender, RoutedEventArgs e) => ShowOperations(OperationKinds.Incident, IncidentsNavButton);
+    private void MaintenanceClick(object sender, RoutedEventArgs e) => ShowOperations(OperationKinds.Maintenance, MaintenanceNavButton);
 
-    private void MaintenanceClick(object sender, RoutedEventArgs e) => ShowOperations(true, MaintenanceNavButton);
-
-    private void ShowOperations(bool maintenance, Button activeButton)
+    private void ShowOperations(string kind, Button activeButton)
     {
+        var permissions = UserRoles.Get(currentUser.Role);
+        if (kind == OperationKinds.Incident ? !permissions.Incidents : !permissions.Maintenance) return;
         HideAllViews();
-        OperationsView.ShowData(vehicles, maintenance);
+        var canManage = kind == OperationKinds.Incident
+            ? permissions.ManageIncidents
+            : permissions.ManageMaintenance;
+        OperationsView.ShowData(data, kind, canManage);
         OperationsView.Visibility = Visibility.Visible;
         SetActiveNavigation(activeButton);
+    }
+
+    private void CalendarClick(object sender, RoutedEventArgs e)
+    {
+        if (!UserRoles.Get(currentUser.Role).Calendar) return;
+        HideAllViews();
+        var permissions = UserRoles.Get(currentUser.Role);
+        CalendarView.ShowData(data, permissions.ManageTasks, permissions.ManageTrips, permissions.ViewTrips);
+        CalendarView.Visibility = Visibility.Visible;
+        SetActiveNavigation(CalendarNavButton);
+    }
+
+    private void DriverPlanningClick(object sender, RoutedEventArgs e)
+    {
+        if (currentUser.Role != UserRoles.Driver || data.FindDriver(currentUser.DriverId) is not Driver driver)
+        {
+            return;
+        }
+
+        HideAllViews();
+        CalendarView.ShowDriverPlan(data, driver);
+        CalendarView.Visibility = Visibility.Visible;
+        SetActiveNavigation(DriverPlanningNavButton);
+    }
+
+    private void SupportClick(object sender, RoutedEventArgs e)
+    {
+        new AssistantWindow(data, currentUser) { Owner = this }.ShowDialog();
+    }
+
+    private void SavClick(object sender, RoutedEventArgs e)
+    {
+        new AssistantWindow(data, currentUser, openSav: true) { Owner = this }.ShowDialog();
+    }
+
+    private void AccountsClick(object sender, RoutedEventArgs e)
+    {
+        if (UserRoles.Get(currentUser.Role).ManageAccounts)
+        {
+            new UserManagementWindow(data) { Owner = this }.ShowDialog();
+        }
     }
 
     private void HideAllViews()
     {
         DashboardView.Visibility = Visibility.Collapsed;
-        UnitsView.Visibility = Visibility.Collapsed;
         MaterialView.Visibility = Visibility.Collapsed;
         OperationsView.Visibility = Visibility.Collapsed;
         EmbeddedMapView.Visibility = Visibility.Collapsed;
+        CalendarView.Visibility = Visibility.Collapsed;
     }
 
-    private void AddUnitClick(object sender, RoutedEventArgs e)
+    private void MapVehicleSelected(object? sender, Vehicle vehicle) => OpenVehicle(vehicle);
+
+    private void OpenVehicle(Vehicle vehicle)
     {
-        if (AccessKeyWindow.Authorize(this))
+        var permissions = UserRoles.Get(currentUser.Role);
+        if (!permissions.Fleet) return;
+        var window = new VehicleDetailWindow(vehicle, data, permissions.ManageFleet) { Owner = this };
+        if (window.ShowDialog() == true && window.UpdatedVehicle is not null)
         {
-            MessageBox.Show("La création détaillée des unités sera ajoutée avec le module de persistance.", "Régiments", MessageBoxButton.OK, MessageBoxImage.Information);
+            ReplaceVehicle(window.UpdatedVehicle);
         }
     }
 
-    private void MapVehicleSelected(object? sender, Vehicle vehicle)
+    private void OpenDriver(Driver driver)
     {
-        var index = vehicles.IndexOf(vehicle);
-        var window = new VehicleDetailWindow(vehicle) { Owner = this };
-        if (window.ShowDialog() == true && window.UpdatedVehicle is Vehicle updatedVehicle)
-        {
-            vehicles[index] = updatedVehicle;
-            RefreshVehicles();
-            EmbeddedMapView.ShowVehicles(vehicles);
-        }
-    }
-
-    private void SetActiveNavigation(Button activeButton)
-    {
-        foreach (var button in new[] { DashboardNavButton, MapNavButton, UnitsNavButton, MaterialNavButton, IncidentsNavButton, MaintenanceNavButton })
-        {
-            button.Background = button == activeButton ? new SolidColorBrush(Color.FromRgb(21, 51, 64)) : Brushes.Transparent;
-            button.Foreground = button == activeButton ? new SolidColorBrush(Color.FromRgb(232, 238, 240)) : new SolidColorBrush(Color.FromRgb(181, 197, 201));
-            button.BorderBrush = button == activeButton ? new SolidColorBrush(Color.FromRgb(200, 162, 74)) : Brushes.Transparent;
-            button.BorderThickness = button == activeButton ? new Thickness(3, 0, 0, 0) : new Thickness(0);
-        }
-    }
-
-    private void SearchChanged(object sender, TextChangedEventArgs e)
-    {
-        searchQuery = (sender as TextBox)?.Text.Trim() ?? string.Empty;
-        RefreshVehicles();
+        if (!UserRoles.Get(currentUser.Role).Fleet) return;
+        var window = new DriverDetailWindow(driver, data) { Owner = this };
+        window.ShowDialog();
     }
 
     private void VehicleDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is Vehicle vehicle)
         {
-            var index = vehicles.IndexOf(vehicle);
-            var window = new VehicleDetailWindow(vehicle) { Owner = this };
-            if (window.ShowDialog() == true && window.UpdatedVehicle is Vehicle updatedVehicle)
-            {
-                vehicles[index] = updatedVehicle;
-                RefreshVehicles();
-            }
+            OpenVehicle(vehicle);
         }
     }
 
     private void AddVehicleClick(object sender, RoutedEventArgs e)
     {
-        if (!AccessKeyWindow.Authorize(this))
+        if (!UserRoles.Get(currentUser.Role).ManageFleet)
         {
+            MessageBox.Show("Votre rôle ne permet pas de modifier le parc.", "Accès refusé",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        var window = new AddVehicleWindow { Owner = this };
+        var window = new AddVehicleWindow(data) { Owner = this };
         if (window.ShowDialog() == true && window.CreatedVehicle is Vehicle vehicle)
         {
-            vehicles.Add(vehicle);
+            data.Vehicles.Add(vehicle);
+            RefreshTypeFilter(selectedVehicleType);
+            PersistAndRefresh();
+        }
+        else
+        {
+            RefreshTypeFilter(selectedVehicleType);
             RefreshVehicles();
         }
     }
 
     private void ExportCsvClick(object sender, RoutedEventArgs e)
     {
-        if (!AccessKeyWindow.Authorize(this))
+        if (!UserRoles.Get(currentUser.Role).Export)
         {
+            MessageBox.Show("Votre rôle ne permet pas d’exporter ces données.", "Accès refusé",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -195,36 +318,61 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         var csv = new StringBuilder();
-        csv.AppendLine("Identifiant;Description;Type;Etat;Plaque;Kilometrage;Localisation");
-        foreach (var vehicle in vehicles)
+        csv.AppendLine("Identifiant;Type;Description;Etat;Plaque;Marque;Modèle;Chauffeur;Localisation");
+        foreach (var vehicle in data.Vehicles)
         {
-            csv.AppendLine(string.Join(';', vehicle.Identifier, vehicle.Description, vehicle.Type, vehicle.State, vehicle.Plate, vehicle.Mileage, vehicle.Location));
+            csv.AppendLine(string.Join(';',
+                EscapeCsv(vehicle.Identifier),
+                EscapeCsv(vehicle.Type),
+                EscapeCsv(vehicle.Description),
+                EscapeCsv(vehicle.State),
+                EscapeCsv(vehicle.Plate),
+                EscapeCsv(vehicle.Brand),
+                EscapeCsv(vehicle.Model),
+                EscapeCsv(data.DriverName(vehicle.DriverId)),
+                EscapeCsv(vehicle.Location)));
         }
 
         File.WriteAllText(dialog.FileName, csv.ToString(), Encoding.UTF8);
         MessageBox.Show("Le rapport CSV a été exporté avec succès.", "Export terminé", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    private static string EscapeCsv(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
+
+    private void SearchChanged(object sender, TextChangedEventArgs e)
+    {
+        searchQuery = (sender as TextBox)?.Text.Trim() ?? string.Empty;
+        RefreshVehicles();
+    }
+
     private void RefreshVehicles()
     {
-        string? selectedType = (TypeFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString();
-        string? selectedState = (StateFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString();
-           var normalizedSearch = NormalizeSearch(searchQuery);
+        if (data is null)
+        {
+            return;
+        }
 
-        var filteredVehicles = vehicles.Where(vehicle =>
-            (selectedType is null || selectedType.StartsWith("Tous") || vehicle.Type == selectedType) &&
-            (selectedState is null || selectedState.StartsWith("Tous") || vehicle.State == selectedState) &&
+        string? selectedType = (TypeFilter?.SelectedItem as ComboBoxItem)?.Tag as string;
+        string? selectedState = (StateFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString();
+        var normalizedSearch = NormalizeSearch(searchQuery);
+
+        var filteredVehicles = data.Vehicles.Where(vehicle =>
+            (selectedType is null || selectedType.StartsWith("Tous", StringComparison.Ordinal) || vehicle.Type == selectedType) &&
+            (selectedState is null || selectedState.StartsWith("Tous", StringComparison.Ordinal) || vehicle.State == selectedState) &&
             (normalizedSearch.Length == 0 ||
-               StartsWithSearch(vehicle.Identifier, normalizedSearch) ||
-             StartsWithSearch(vehicle.Plate, normalizedSearch)));
+             StartsWithSearch(vehicle.Identifier, normalizedSearch) ||
+             StartsWithSearch(vehicle.Plate, normalizedSearch) ||
+             StartsWithSearch(data.DriverName(vehicle.DriverId), normalizedSearch)));
 
         VisibleVehicles.Clear();
         AlertVehicles.Clear();
         foreach (var vehicle in filteredVehicles)
         {
+            vehicle.DriverName = data.DriverName(vehicle.DriverId);
+            vehicle.TypeDisplay = VehicleTypes.Display(vehicle.Type, data.VehicleCategories);
             VisibleVehicles.Add(vehicle);
         }
-        foreach (var vehicle in vehicles.Where(vehicle => vehicle.State != "Disponible"))
+        foreach (var vehicle in data.Vehicles.Where(vehicle => vehicle.State != "Disponible"))
         {
             AlertVehicles.Add(vehicle);
         }
@@ -235,48 +383,54 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             VehicleList.ItemsSource = VisibleVehicles;
         }
 
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ReferenceCount)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AvailableCount)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MaintenanceCount)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UnavailableCount)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AvailabilityPercentage)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AlertCount)));
+        foreach (var property in new[] { nameof(ReferenceCount), nameof(AvailableCount), nameof(MaintenanceCount), nameof(UnavailableCount), nameof(AvailabilityPercentage), nameof(AlertCount) })
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        }
     }
 
-    private static bool StartsWithSearch(string value, string search)
+    private void ReplaceVehicle(Vehicle updatedVehicle)
     {
-        return NormalizeSearch(value).StartsWith(search, StringComparison.OrdinalIgnoreCase);
+        var index = data.Vehicles.FindIndex(vehicle => vehicle.Id == updatedVehicle.Id);
+        if (index >= 0)
+        {
+            data.Vehicles[index] = updatedVehicle;
+        }
+        PersistAndRefresh();
     }
 
-    private static string NormalizeSearch(string value)
+    private void PersistAndRefresh()
     {
-        return value.Replace(" ", string.Empty).Replace("-", string.Empty).ToUpperInvariant();
+        ApplicationDataStore.Save(data);
+        RefreshVehicles();
+        EmbeddedMapView.ShowVehicles(data);
+        MaterialView.ShowVehicles(data);
+        if (currentUser.Role == UserRoles.Driver && data.FindDriver(currentUser.DriverId) is Driver driver)
+        {
+            CalendarView.ShowDriverPlan(data, driver);
+        }
+        else
+        {
+            var permissions = UserRoles.Get(currentUser.Role);
+            CalendarView.ShowData(data, permissions.ManageTasks, permissions.ManageTrips, permissions.ViewTrips);
+        }
+        OperationsView.Refresh();
     }
+
+    private void SetActiveNavigation(Button activeButton)
+    {
+        foreach (var button in new[] { DashboardNavButton, MapNavButton, MaterialNavButton, IncidentsNavButton, MaintenanceNavButton, CalendarNavButton, DriverPlanningNavButton })
+        {
+            button.Background = button == activeButton ? new SolidColorBrush(Color.FromRgb(21, 51, 64)) : Brushes.Transparent;
+            button.Foreground = button == activeButton ? new SolidColorBrush(Color.FromRgb(232, 238, 240)) : new SolidColorBrush(Color.FromRgb(181, 197, 201));
+            button.BorderBrush = button == activeButton ? new SolidColorBrush(Color.FromRgb(200, 162, 74)) : Brushes.Transparent;
+            button.BorderThickness = button == activeButton ? new Thickness(3, 0, 0, 0) : new Thickness(0);
+        }
+    }
+
+    private static bool StartsWithSearch(string value, string search) =>
+        NormalizeSearch(value).Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    private static string NormalizeSearch(string value) =>
+        value.Replace(" ", string.Empty).Replace("-", string.Empty).ToUpperInvariant();
 }
-
-public sealed record Vehicle(string Identifier, string Type, string State, string Description, string StateColor)
-{
-    public string Plate { get; init; } = string.Empty;
-    public string Mileage { get; init; } = "42 680 km";
-    public string Brand { get; init; } = "ATREUS Motors";
-    public string Model { get; init; } = "Orion T4";
-    public string Registration { get; init; } = "CG-OR-2023-021";
-    public string Vin { get; init; } = "VF7DEMO0000OR02184";
-    public string AcquisitionDate { get; init; } = "14/03/2023";
-    public string PurchasePrice { get; init; } = "248 500 €";
-    public string Supplier { get; init; } = "M Industrie Fleet";
-    public string ServiceDate { get; init; } = "28/03/2023";
-    public string Energy { get; init; } = "Diesel";
-    public string Power { get; init; } = "190 ch";
-    public string LastInspection { get; init; } = "12/02/2026";
-    public string NextInspection { get; init; } = "12/02/2027";
-    public string Location { get; init; } = "Parc Orion";
-    public double Latitude { get; init; } = 46.5;
-    public double Longitude { get; init; } = 2.35;
-}
-
-public sealed record Unit(string Name, string Description, int PersonnelCount, int VehicleCount);
-
-public sealed record Incident(string Number, string VehicleIdentifier, string Nature, string Status, string Date);
-
-public sealed record MaintenanceOperation(string Number, string VehicleIdentifier, string Nature, string Status, string Date);

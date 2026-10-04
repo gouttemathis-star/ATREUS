@@ -1,0 +1,194 @@
+<Window x:Class="ATREUS.AssistantWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Assistante ATREUS"
+        Width="1000"
+        Height="740"
+        MinWidth="760"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource PageBrush}"
+        Foreground="{StaticResource TextBrush}">
+    <Window.Resources>
+        <Style x:Key="QuickQuestionStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource CardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+        </Style>
+        <DataTemplate x:Key="ChatMessageTemplate">
+            <Grid Margin="0,5">
+                <Border x:Name="Bubble"
+                        HorizontalAlignment="Left"
+                        MaxWidth="550"
+                        Background="{StaticResource CardBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12,12,12,3"
+                        Padding="13,10">
+                    <TextBlock x:Name="MessageText"
+                               Text="{Binding Text}"
+                               TextWrapping="Wrap"
+                               LineHeight="20"
+                               Foreground="{StaticResource TextBrush}" />
+                </Border>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsUser}" Value="True">
+                    <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right" />
+                    <Setter TargetName="Bubble" Property="Background" Value="#C8A24A" />
+                    <Setter TargetName="Bubble" Property="BorderBrush" Value="#C8A24A" />
+                    <Setter TargetName="Bubble" Property="CornerRadius" Value="12,12,3,12" />
+                    <Setter TargetName="MessageText" Property="Foreground" Value="#06151D" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="245" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="18">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <Grid Width="132" Height="132" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Border CornerRadius="66">
+                            <Border.Background>
+                                <ImageBrush ImageSource="/ATREUS;component/Assets/atreus-assistant.png"
+                                            Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                        <Ellipse Stroke="#355967" StrokeThickness="1" />
+                        <Ellipse Width="10" Height="10"
+                                 Fill="{StaticResource GoldBrush}"
+                                 HorizontalAlignment="Right"
+                                 VerticalAlignment="Top"
+                                 Margin="0,9,9,0" />
+                    </Grid>
+                    <TextBlock Text="ATREUS" HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="VOTRE ASSISTANTE" HorizontalAlignment="Center" Foreground="{StaticResource GoldBrush}" FontSize="10" FontWeight="SemiBold" Margin="0,5,0,0" />
+                    <TextBlock Text="Je vous guide dans la gestion de votre flotte et des opérations."
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="12"
+                               LineHeight="19"
+                               Margin="4,14,4,0" />
+                </StackPanel>
+                <Border Grid.Row="1"
+                        Background="{StaticResource InputBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="7" Height="7" Fill="{StaticResource GreenBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
+                            <TextBlock x:Name="AssistantRuntimeLabel" Text="MOTEUR IA LOCAL À VÉRIFIER" FontSize="10" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock x:Name="AssistantPrivacyLabel"
+                                   Text="Modèle configuré : qwen2.5:3b. Ollama doit être installé avec ce modèle. ATREUS ne communique qu’avec le moteur local sur cet appareil."
+                                   Foreground="{StaticResource MutedBrush}"
+                                   TextWrapping="Wrap"
+                                   FontSize="10"
+                                   LineHeight="16"
+                                   Margin="14,5,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="2"
+                Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="18">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="CENTRE D’AIDE" Foreground="{StaticResource GoldBrush}" FontSize="10" FontWeight="SemiBold" />
+                        <TextBlock Text="Bonjour, comment puis-je vous aider ?" FontSize="22" FontWeight="Bold" Margin="0,5,0,0" />
+                    </StackPanel>
+                    <Button Content="Fermer"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Click="CloseClick" />
+                </Grid>
+
+                <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+                    <Button Content="Voir l’état du parc" Tag="Quel est l’état de mon parc ?" Style="{StaticResource QuickQuestionStyle}" Click="QuickQuestionClick" />
+                    <Button Content="Mes trajets" Tag="Quels sont les prochains trajets ?" Style="{StaticResource QuickQuestionStyle}" Click="QuickQuestionClick" />
+                    <Button Content="Calendrier" Tag="Comment suivre mes tâches dans le calendrier ?" Style="{StaticResource QuickQuestionStyle}" Click="QuickQuestionClick" />
+                    <Button Content="Le siège" Tag="Où se trouve le siège social ?" Style="{StaticResource QuickQuestionStyle}" Click="QuickQuestionClick" />
+                    <Button Content="Contacter le SAV" Tag="Je souhaite contacter le SAV" Style="{StaticResource QuickQuestionStyle}" Click="QuickQuestionClick" />
+                </WrapPanel>
+
+                <Border Grid.Row="2"
+                        Background="{StaticResource InputBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        Padding="12">
+                    <ScrollViewer x:Name="ConversationScroll" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="MessagesList" ItemTemplate="{StaticResource ChatMessageTemplate}" />
+                    </ScrollViewer>
+                </Border>
+
+                <Grid Grid.Row="3" Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="QuestionInput"
+                             MinHeight="44"
+                             MaxHeight="120"
+                             Padding="12,10"
+                             Background="{StaticResource InputBrush}"
+                             Foreground="{StaticResource TextBrush}"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             KeyDown="QuestionKeyDown" />
+                    <Button Grid.Column="1"
+                            Content="Envoyer  →"
+                            Background="{StaticResource GoldBrush}"
+                            Foreground="{StaticResource PageBrush}"
+                            BorderBrush="{StaticResource GoldBrush}"
+                            FontWeight="SemiBold"
+                            Margin="8,0,0,0"
+                            Click="SendClick" />
+                </Grid>
+
+                <TextBlock Grid.Row="4"
+                           Text="Pour une réponse non disponible ici, l’assistante vous orientera vers les informations SAV de démonstration."
+                           Foreground="{StaticResource MutedBrush}"
+                           TextWrapping="Wrap"
+                           FontSize="10"
+                           Margin="2,8,0,0" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

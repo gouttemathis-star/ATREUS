@@ -9,36 +9,29 @@
         Icon="/ATREUS;component/Assets/atreus.ico"
         Height="900"
         Width="1440"
-        MinHeight="720"
-        MinWidth="1100"
-        Background="#06151D"
-        Foreground="#E8EEF0"
+        MinHeight="420"
+        MinWidth="780"
+        WindowState="Maximized"
+        Background="{StaticResource PageBrush}"
+        Foreground="{StaticResource TextBrush}"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <SolidColorBrush x:Key="PageBrush" Color="#06151D" />
-        <SolidColorBrush x:Key="PanelBrush" Color="#091D27" />
-        <SolidColorBrush x:Key="CardBrush" Color="#0B222D" />
-        <SolidColorBrush x:Key="BorderBrush" Color="#214451" />
-        <SolidColorBrush x:Key="MutedBrush" Color="#A9BBC0" />
-        <SolidColorBrush x:Key="GoldBrush" Color="#C8A24A" />
-        <SolidColorBrush x:Key="GreenBrush" Color="#7CCB9B" />
-        <SolidColorBrush x:Key="OrangeBrush" Color="#E2A05A" />
-
-        <Style x:Key="NavItemStyle" TargetType="Button">
+        <Style x:Key="NavItemStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#B5C5C9" />
+            <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Padding" Value="14,11" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,3" />
         </Style>
 
         <Style x:Key="FilterStyle" TargetType="ComboBox">
             <Setter Property="Height" Value="50" />
             <Setter Property="Margin" Value="0,0,0,12" />
-            <Setter Property="Background" Value="#000000" />
-            <Setter Property="Foreground" Value="#F1F5F6" />
+            <Setter Property="Background" Value="{StaticResource InputBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="FontSize" Value="16" />
@@ -57,7 +50,7 @@
                                 </Grid>
                             </Border>
                             <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
-                                <Border Background="#000000" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
                                     <ScrollViewer MaxHeight="280">
                                         <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
                                     </ScrollViewer>
@@ -69,21 +62,6 @@
             </Setter>
         </Style>
 
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="#F1F5F6" />
-            <Setter Property="Background" Value="#000000" />
-            <Setter Property="Padding" Value="10,8" />
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#000000" />
-                    <Setter Property="Foreground" Value="#FFFFFF" />
-                </Trigger>
-                <Trigger Property="IsHighlighted" Value="True">
-                    <Setter Property="Background" Value="#172A31" />
-                    <Setter Property="Foreground" Value="#FFFFFF" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </Window.Resources>
 
     <Grid Background="{StaticResource PageBrush}">
@@ -92,68 +70,78 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="#071923" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
             <DockPanel Margin="20,26">
                 <StackPanel DockPanel.Dock="Top">
-                    <StackPanel Orientation="Horizontal" Margin="12,0,0,4">
-                        <Border Width="38" Height="46" Background="#12313C" Margin="0,0,12,0" Clip="M 0,0 L 38,8 L 38,38 L 0,46 Z">
-                            <TextBlock Text="✦" Foreground="#E5C35B" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBlock Text="ATREUS" FontSize="30" FontWeight="Bold" VerticalAlignment="Center" Foreground="#E8E6DA" />
-                    </StackPanel>
-                    <TextBlock Text="DEFENCE ASSET" Margin="52,0,0,0" FontSize="9" Foreground="#A9BBC0" />
-                    <TextBlock Text="MANAGEMENT" Margin="52,2,0,0" FontSize="9" Foreground="#A9BBC0" />
-                    <TextBlock Text="M INDUSTRIE" Margin="52,13,0,0" FontSize="10" Foreground="#A9BBC0" />
-                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,28,0,25" />
+                    <Border Background="{StaticResource PageBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="4">
+                        <Image Source="/ATREUS;component/Assets/atreus-industrial-emblem.jpg" Width="200" Height="133" Stretch="Uniform" />
+                    </Border>
+                    <TextBlock Text="FLOTTE  ·  OPÉRATIONS  ·  ATREMAPS" Foreground="{StaticResource MutedBrush}" FontSize="9" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,16,0,12" />
                 </StackPanel>
 
+                <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="7" Padding="10" Margin="0,18,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="7" Height="7" Fill="{StaticResource GreenBrush}" VerticalAlignment="Center" Margin="2,0,8,0" />
+                            <TextBlock x:Name="SessionNameLabel" Text="ESPACE DE TRAVAIL LOCAL" Foreground="{StaticResource TextBrush}" FontSize="9" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock x:Name="SessionRoleLabel" Text="Données enregistrées sur cet appareil" Foreground="{StaticResource MutedBrush}" FontSize="9" Margin="17,5,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
-                    <TextBlock Text="PILOTAGE" FontSize="10" Foreground="#52707A" Margin="14,8,0,10" />
+                    <TextBlock x:Name="PilotageHeader" Text="PILOTAGE" FontSize="10" Foreground="#52707A" Margin="14,8,0,10" />
                     <Button x:Name="DashboardNavButton" Style="{StaticResource NavItemStyle}" Content="▣  Tableau de bord" Click="DashboardClick" />
-                    <Button x:Name="MapNavButton" Style="{StaticResource NavItemStyle}" Content="↕  Carte opérationnelle" Click="MapClick" />
-                    <Button x:Name="UnitsNavButton" Style="{StaticResource NavItemStyle}" Content="♜  Régiments" Click="UnitsClick" />
-                    <TextBlock Text="PARC &amp; MAINTENANCE" FontSize="10" Foreground="#52707A" Margin="14,28,0,10" />
+                    <Button x:Name="MapNavButton" Style="{StaticResource NavItemStyle}" Content="↕  ATREMAPS" Click="MapClick" />
+                    <TextBlock x:Name="FleetHeader" Text="PARC &amp; MAINTENANCE" FontSize="10" Foreground="#52707A" Margin="14,18,0,8" />
                     <Button x:Name="MaterialNavButton" Style="{StaticResource NavItemStyle}" Content="▤  Parc matériel" Click="MaterialClick" />
                     <Button x:Name="IncidentsNavButton" Style="{StaticResource NavItemStyle}" Content="⚠  Incidents" Click="IncidentsClick" />
                     <Button x:Name="MaintenanceNavButton" Style="{StaticResource NavItemStyle}" Content="⚙  Maintenance" Click="MaintenanceClick" />
-                    <Button Style="{StaticResource NavItemStyle}" Content="◷  Historique" />
-                    <TextBlock Text="ASSISTANCE" FontSize="10" Foreground="#52707A" Margin="14,28,0,10" />
-                    <Button Style="{StaticResource NavItemStyle}" Content="◌  Support ATREUS" />
-                    <Button Style="{StaticResource NavItemStyle}" Content="♧  SAV" />
+                    <Button x:Name="CalendarNavButton" Style="{StaticResource NavItemStyle}" Content="◷  Calendrier des tâches" Click="CalendarClick" />
+                    <Button x:Name="DriverPlanningNavButton" Style="{StaticResource NavItemStyle}" Content="◷  Planning conducteur" Click="DriverPlanningClick" Visibility="Collapsed" />
+                    <TextBlock x:Name="AssistanceHeader" Text="ASSISTANCE" FontSize="10" Foreground="#52707A" Margin="14,18,0,8" />
+                    <Button Style="{StaticResource NavItemStyle}" Content="◌  Assistante ATREUS" Click="SupportClick" />
+                    <Button Style="{StaticResource NavItemStyle}" Content="♧  SAV" Click="SavClick" />
+                    <Button x:Name="AccountsNavButton" Style="{StaticResource NavItemStyle}" Content="♙  Comptes et rôles" Click="AccountsClick" Visibility="Collapsed" />
                 </StackPanel>
+                </ScrollViewer>
             </DockPanel>
         </Border>
 
         <Grid Grid.Column="1">
         <ScrollViewer x:Name="DashboardView" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="30,28,42,40">
-                <Grid Margin="0,0,0,24">
+                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,24">
+                <Grid>
                     <StackPanel>
                         <TextBlock Text="ATREUS · CENTRE DE PILOTAGE" Foreground="{StaticResource GoldBrush}" FontSize="11" />
                         <TextBlock Text="Tableau de bord" FontSize="34" FontWeight="Bold" Margin="0,8,0,4" />
-                        <TextBlock Text="Démonstration — données et unités fictives." Foreground="{StaticResource MutedBrush}" FontSize="13" />
+                        <TextBlock Text="Suivi du parc, des chauffeurs et des opérations." Foreground="{StaticResource MutedBrush}" FontSize="13" />
                         <Grid Margin="0,16,0,0">
-                            <TextBox x:Name="SearchInput" Width="360" Height="38" HorizontalAlignment="Left" TextChanged="SearchChanged" ToolTip="Rechercher un véhicule" Background="#0A202A" Foreground="#A9BBC0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="12,8" />
+                            <TextBox x:Name="SearchInput" Width="360" Height="38" HorizontalAlignment="Left" TextChanged="SearchChanged" ToolTip="Rechercher un véhicule" Background="{StaticResource InputBrush}" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="12,8" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <Button Content="Exporter CSV" Padding="12,7" Background="{StaticResource GoldBrush}" Foreground="#06151D" BorderThickness="0" Click="ExportCsvClick" />
+                                <Button x:Name="ExportCsvButton" Content="Exporter CSV" Padding="12,7" Background="{StaticResource GoldBrush}" Foreground="#06151D" BorderThickness="0" Click="ExportCsvClick" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
                     <Border HorizontalAlignment="Right" VerticalAlignment="Top" BorderBrush="{StaticResource GoldBrush}" BorderThickness="1" CornerRadius="14" Padding="12,5">
-                        <TextBlock Text="SYSTÈME DÉMO" Foreground="#D9B85A" FontSize="10" />
+                        <TextBlock Text="SUIVI LOCAL" Foreground="{StaticResource GoldBrush}" FontSize="10" />
                     </Border>
                 </Grid>
+                </Border>
 
                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="20,18,20,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
                             <StackPanel>
                                 <TextBlock Text="PARC SÉLECTIONNÉ" Foreground="{StaticResource GoldBrush}" FontSize="11" />
-                                <TextBlock Text="12e Régiment Orion" FontSize="23" FontWeight="Bold" Margin="0,3,0,2" />
-                                <TextBlock Text="Armée de Terre · Données fictives de démonstration" Foreground="{StaticResource MutedBrush}" FontSize="11" />
+                                <TextBlock Text="Parc de véhicules" FontSize="23" FontWeight="Bold" Margin="0,3,0,2" />
+                                <TextBlock Text="Véhicules terrestres et opérations associées" Foreground="{StaticResource MutedBrush}" FontSize="11" />
                             </StackPanel>
                             <Border HorizontalAlignment="Right" VerticalAlignment="Top" BorderBrush="{StaticResource GoldBrush}" BorderThickness="1" CornerRadius="14" Padding="12,5">
-                                <TextBlock Text="PARC MATÉRIEL" Foreground="#D9B85A" FontSize="10" />
+                                <TextBlock Text="PARC MATÉRIEL" Foreground="{StaticResource GoldBrush}" FontSize="10" />
                             </Border>
                         </Grid>
 
@@ -163,7 +151,7 @@
                                 <ColumnDefinition Width="20" />
                                 <ColumnDefinition Width="0.85*" />
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#081A23" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="16">
+                            <Border Grid.Column="0" Background="{StaticResource InputBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="16">
                                 <StackPanel>
                                     <TextBlock Text="ÉTAT DU PARC" Foreground="{StaticResource GoldBrush}" FontSize="11" Margin="0,0,0,12" />
                                     <Grid Margin="0,0,0,0"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="30" /></Grid.ColumnDefinitions><TextBlock Text="Véhicules référencés" Foreground="{StaticResource MutedBrush}" FontSize="12" /><TextBlock Grid.Column="1" Text="{Binding ReferenceCount}" HorizontalAlignment="Right" /></Grid>
@@ -175,13 +163,13 @@
                                     <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="30" /></Grid.ColumnDefinitions><TextBlock Text="Indisponibles" Foreground="{StaticResource MutedBrush}" FontSize="12" /><TextBlock Grid.Column="1" Text="{Binding UnavailableCount}" HorizontalAlignment="Right" /></Grid>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="2" Background="#081A23" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="12">
+                            <Border Grid.Column="2" Background="{StaticResource InputBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="12">
                                 <StackPanel>
                                     <Grid Margin="4,0,0,12">
                                         <TextBlock Text="VÉHICULES DU PARC" Foreground="{StaticResource GoldBrush}" FontSize="11" />
-                                        <Button Content="+ Ajouter" HorizontalAlignment="Right" Padding="10,4" Background="#0B222D" Foreground="#FFFFFF" BorderBrush="{StaticResource GoldBrush}" BorderThickness="1" Click="AddVehicleClick" />
+                                        <Button x:Name="AddVehicleButton" Content="+ Ajouter" HorizontalAlignment="Right" Padding="10,4" Background="{StaticResource CardBrush}" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="1" Click="AddVehicleClick" />
                                     </Grid>
-                                    <ComboBox x:Name="TypeFilter" Style="{StaticResource FilterStyle}" SelectedIndex="0" SelectionChanged="FilterChanged"><ComboBoxItem Content="Tous les types" /><ComboBoxItem Content="Terrestre" /><ComboBoxItem Content="Aérien" /><ComboBoxItem Content="Maritime" /></ComboBox>
+                                    <ComboBox x:Name="TypeFilter" Style="{StaticResource FilterStyle}" SelectedIndex="0" SelectionChanged="TypeFilterSelectionChanged" />
                                     <ComboBox x:Name="StateFilter" Style="{StaticResource FilterStyle}" SelectedIndex="0" SelectionChanged="FilterChanged"><ComboBoxItem Content="Tous les états" /><ComboBoxItem Content="Disponible" /><ComboBoxItem Content="Maintenance" /><ComboBoxItem Content="Indisponible" /></ComboBox>
                                     <ItemsControl x:Name="VehicleList" ItemsSource="{Binding VisibleVehicles}">
                                         <ItemsControl.ItemTemplate>
@@ -189,7 +177,7 @@
                                                 <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,6" Cursor="Hand" MouseLeftButtonDown="VehicleDoubleClick">
                                                     <StackPanel>
                                                         <Grid><TextBlock Text="{Binding Identifier}" FontWeight="Bold" FontSize="12" /><TextBlock Text="{Binding State}" HorizontalAlignment="Right" FontSize="11" Foreground="{Binding StateColor}" /></Grid>
-                                                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
+                                                        <TextBlock Text="{Binding DriverName}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
@@ -215,22 +203,10 @@
                 </Grid>
             </StackPanel>
         </ScrollViewer>
-        <ScrollViewer x:Name="UnitsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="30,28,42,40">
-                <TextBlock Text="ATREUS · ORGANISATION" Foreground="{StaticResource GoldBrush}" FontSize="11" />
-                <TextBlock Text="Régiments et unités" FontSize="34" FontWeight="Bold" Margin="0,8,0,4" />
-                <TextBlock Text="Structure des unités et rattachement des moyens." Foreground="{StaticResource MutedBrush}" FontSize="13" Margin="0,0,0,24" />
-                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="20">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,16"><TextBlock Text="UNITÉS RÉFÉRENCÉES" Foreground="{StaticResource GoldBrush}" FontSize="11" /><Button Content="+ Ajouter une unité" HorizontalAlignment="Right" Padding="12,6" Background="{StaticResource GoldBrush}" Foreground="#06151D" BorderThickness="0" Click="AddUnitClick" /></Grid>
-                        <ItemsControl ItemsSource="{Binding Units}"><ItemsControl.ItemTemplate><DataTemplate><Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,10"><Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="130" /><ColumnDefinition Width="130" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" /><TextBlock Text="{Binding Description}" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,5,0,0" /></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="EFFECTIF" Foreground="{StaticResource GoldBrush}" FontSize="10" /><TextBlock Text="{Binding PersonnelCount}" FontSize="18" Margin="0,5,0,0" /></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="VÉHICULES" Foreground="{StaticResource GoldBrush}" FontSize="10" /><TextBlock Text="{Binding VehicleCount}" FontSize="18" Margin="0,5,0,0" /></StackPanel></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
         <local:MaterialView x:Name="MaterialView" Visibility="Collapsed" />
         <local:OperationsView x:Name="OperationsView" Visibility="Collapsed" />
         <local:MapView x:Name="EmbeddedMapView" Visibility="Collapsed" />
+        <local:CalendarView x:Name="CalendarView" Visibility="Collapsed" />
     </Grid>
         </Grid>
 </Window>

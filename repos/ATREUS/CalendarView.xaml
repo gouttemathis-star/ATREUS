@@ -1,0 +1,72 @@
+<UserControl x:Class="ATREUS.CalendarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource PageBrush}">
+    <UserControl.Resources>
+        <Style x:Key="CalendarNavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource CardBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="26,22,30,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="ATREUS · PLANIFICATION" Foreground="{StaticResource GoldBrush}" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="CalendarTitle" Text="Calendrier" FontSize="31" FontWeight="Bold" Margin="0,5,0,2" />
+                <TextBlock x:Name="CalendarSubtitle" Text="Vos tâches et trajets, organisés dans le temps." Foreground="{StaticResource MutedBrush}" FontSize="13" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="AddTripButton" Content="↔  Planifier un trajet" Style="{StaticResource CalendarNavButton}" Margin="0,0,8,0" Click="AddTripClick" />
+                <Button x:Name="AddTaskButton" Content="+ Nouvelle tâche" Style="{StaticResource CalendarNavButton}" Background="{StaticResource GoldBrush}" Foreground="{StaticResource PageBrush}" BorderBrush="{StaticResource GoldBrush}" FontWeight="SemiBold" Click="AddClick" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="‹" Width="38" Style="{StaticResource CalendarNavButton}" Click="PreviousClick" />
+                <Button Content="Aujourd’hui" Style="{StaticResource CalendarNavButton}" Margin="7,0" Click="TodayClick" />
+                <Button Content="›" Width="38" Style="{StaticResource CalendarNavButton}" Click="NextClick" />
+                <TextBlock x:Name="RangeLabel" Foreground="#E8EEF0" FontWeight="Bold" FontSize="21" VerticalAlignment="Center" Margin="18,0,0,0" />
+            </StackPanel>
+            <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="4">
+                <StackPanel Orientation="Horizontal">
+                        <Button x:Name="MonthViewButton" Content="Mois" Padding="15,8" BorderThickness="0" Background="{StaticResource GoldBrush}" Foreground="{StaticResource PageBrush}" FontWeight="SemiBold" Click="MonthViewClick" />
+                        <Button x:Name="WeekViewButton" Content="Semaine" Padding="15,8" BorderThickness="0" Background="Transparent" Foreground="{StaticResource TextBrush}" Click="WeekViewClick" />
+                        <Button x:Name="DayViewButton" Content="Jour" Padding="15,8" BorderThickness="0" Background="Transparent" Foreground="{StaticResource TextBrush}" Click="DayViewClick" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="0,0,0,13">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="À SUIVRE" Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock x:Name="OpenCount" Foreground="#E8EEF0" FontWeight="Bold" Margin="7,0,20,0" VerticalAlignment="Center" />
+                <TextBlock Text="EN RETARD" Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock x:Name="OverdueCount" Foreground="#F18C83" FontWeight="Bold" Margin="7,0,0,0" VerticalAlignment="Center" />
+            </StackPanel>
+            <ComboBox x:Name="FilterInput" Grid.Column="1" SelectedIndex="0" Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource BorderBrush}" Padding="9,6" Margin="0,0,8,0" SelectionChanged="FilterChanged">
+                <ComboBoxItem Content="Toutes les tâches et trajets" /><ComboBoxItem Content="En retard" /><ComboBoxItem Content="À venir" /><ComboBoxItem Content="Terminées" />
+            </ComboBox>
+            <Button Grid.Column="2" Content="Aujourd’hui" Style="{StaticResource CalendarNavButton}" Padding="11,6" Click="TodayClick" />
+        </Grid>
+
+        <Grid x:Name="WeekdayHeader" Grid.Row="3" Margin="0,0,0,3" />
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <Grid x:Name="CalendarGrid" />
+        </ScrollViewer>
+    </Grid>
+</UserControl>

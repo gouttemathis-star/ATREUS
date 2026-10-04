@@ -5,8 +5,6 @@ namespace ATREUS;
 
 public partial class AccessKeyWindow : Window
 {
-    private const string AccessKey = "ATREUS-ADMIN-2026";
-
     public AccessKeyWindow()
     {
         InitializeComponent();
@@ -15,13 +13,19 @@ public partial class AccessKeyWindow : Window
 
     public static bool Authorize(Window owner)
     {
-        var window = new AccessKeyWindow { Owner = owner };
-        return window.ShowDialog() == true;
+        if ((Application.Current as App)?.AuthenticatedUser?.Role == UserRoles.Administrator)
+        {
+            return true;
+        }
+
+        MessageBox.Show(owner, "Cette action nécessite le rôle Administrateur.", "Accès refusé",
+            MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
     }
 
     private void ValidateClick(object sender, RoutedEventArgs e)
     {
-        if (PasswordInput.Password == AccessKey)
+        if ((Application.Current as App)?.AuthenticatedUser?.Role == UserRoles.Administrator)
         {
             DialogResult = true;
             return;
