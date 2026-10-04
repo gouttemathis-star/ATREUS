@@ -13,6 +13,7 @@ public static class AccountSecurity
         string userName,
         string displayName,
         string role,
+        string accessLevel,
         string? driverId,
         string password)
     {
@@ -51,16 +52,51 @@ public static class AccountSecurity
 
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
         var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
-        return new UserAccount
+        var account = new UserAccount
         {
             UserName = userName,
             DisplayName = displayName,
             Role = role,
-            DriverId = role == UserRoles.Driver ? driverId : null,
+            DriverId = driverId,
             PasswordSalt = Convert.ToBase64String(salt),
             PasswordHash = Convert.ToBase64String(hash)
         };
+        AccessControl.ApplyPreset(account, accessLevel);
+        return account;
     }
+
+    public static bool CanManageAccount(UserAccount? actor, UserAccount target) =>
+        actor is not null &&
+        AccessControl.Resolve(actor).ManageAccounts &&
+        !AccessControl.IsProtectedAdministrator(target) &&
+        (actor.AccessLevel != AccessLevels.Special || target.AccessLevel != AccessLevels.Level3);
+
+    public static bool CanAssignAccessLevel(UserAccount? actor, string accessLevel) =>
+        actor is null ||
+        AccessControl.Resolve(actor).ManageAccounts &&
+        (actor.AccessLevel != AccessLevels.Special || accessLevel != AccessLevels.Level3);
+
+    public static bool CanDeleteVehicle(UserAccount? actor) =>
+        actor is not null && AccessControl.Resolve(actor).DeleteVehicles;
+
+    public static void SetPassword(UserAccount user, string password)
+    {
+        if (password.Length < 10)
+        {
+            throw new ArgumentException("Le mot de passe doit contenir au moins 10 caractères.");
+        }
+
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
+        user.PasswordSalt = Convert.ToBase64String(salt);
+        user.PasswordHash = Convert.ToBase64String(hash);
+    }
+
+    public static string CreateTemporaryPassword() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(24))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
 
     public static UserAccount? Authenticate(ApplicationData data, string userName, string password)
     {

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ATREUS")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a7f418e3b89a296721993694f5e734315969900e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f1c417c4306783f2557430bdb12aaad66e586616")]
 [assembly: System.Reflection.AssemblyProductAttribute("ATREUS")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ATREUS")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

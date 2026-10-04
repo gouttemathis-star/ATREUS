@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Globe ATREUS</title>
+    <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css">
+    <style>
+        html, body, #globe { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #06151d; }
+        .cesium-viewer-bottom { display: none; }
+        .map-control, .map-info, .map-readout {
+            color: #e8eef0;
+            background: rgba(6, 21, 29, .92);
+            border: 1px solid #45616b;
+            border-radius: 7px;
+            font: 12px/1.45 sans-serif;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, .35);
+        }
+        .map-control { position: absolute; z-index: 5; top: 12px; right: 12px; display: flex; gap: 5px; padding: 5px; }
+        .map-control button, .map-info button {
+            border: 1px solid #45616b;
+            border-radius: 5px;
+            padding: 6px 9px;
+            color: #e8eef0;
+            background: #102b36;
+            cursor: pointer;
+        }
+        .map-control .headquarters-button { display: grid; width: 36px; height: 34px; padding: 5px; place-items: center; color: #e8eef0; }
+        .map-control .headquarters-button svg { width: 18px; height: 18px; fill: currentColor; }
+        .map-control .headquarters-button:hover { color: #06151d; background: #c8a24a; border-color: #c8a24a; }
+        .map-control button.active { color: #06151d; background: #c8a24a; border-color: #c8a24a; font-weight: 700; }
+        .map-readout { position: absolute; z-index: 5; left: 12px; bottom: 12px; padding: 7px 10px; pointer-events: none; }
+        .map-info { position: absolute; z-index: 5; right: 12px; bottom: 52px; width: min(320px, calc(100% - 24px)); max-height: 48%; overflow: auto; padding: 12px; display: none; box-sizing: border-box; }
+        .map-info.open { display: block; }
+        .map-info h2 { color: #c8a24a; font-size: 15px; margin: 0 34px 8px 0; }
+        .map-info h3 { color: #c8a24a; font-size: 11px; margin: 12px 0 4px; text-transform: uppercase; }
+        .map-info p { margin: 4px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .map-info .muted { color: #a9bbc0; }
+        .route-card { margin: 10px 0; padding: 10px; border: 1px solid #45616b; border-radius: 6px; background: #0b222d; }
+        .route-track { height: 8px; margin: 8px 0 5px; overflow: hidden; border-radius: 5px; background: #294451; }
+        .route-progress-fill { height: 100%; border-radius: inherit; background: #c8a24a; transition: width .3s ease; }
+        .route-note { color: #a9bbc0; font-size: 10px; margin-top: 7px !important; }
+        .map-info .close { position: absolute; top: 8px; right: 8px; padding: 2px 8px; }
+    </style>
+    <script>window.CESIUM_BASE_URL = "https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/";</script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
+</head>
+<body>
+    <div id="globe"></div>
+    <div class="map-control" aria-label="Fond de carte">
+        <button id="headquartersButton" class="headquarters-button" type="button" title="Centrer sur le siège social" aria-label="Centrer sur le siège social">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 11h2.4v9h5.3v-5.8h3.6V20h5.3v-9h2.4L12 3z" /></svg>
+        </button>
+        <button id="satelliteButton" class="active" type="button">Satellite</button>
+        <button id="roadsButton" type="button">Routier</button>
+    </div>
+    <div id="mapReadout" class="map-readout">Positionnez le curseur sur le globe · Altitude caméra —</div>
+    <section id="mapInfo" class="map-info" aria-live="polite">
+        <button id="closeInfo" class="close" type="button" aria-label="Fermer">×</button>
+        <h2 id="infoTitle"></h2>
+        <div id="infoBody"></div>
+    </section>
+    <script>
+        (() => {
+            const webview = window.chrome && window.chrome.webview;
+            const send = message => webview && webview.postMessage(message);
+            if (!window.Cesium) {
+                send({ type: "error" });
+                return;
+            }
+
+            const viewer = new Cesium.Viewer("globe", {
+                animation: false,
+                baseLayerPicker: false,
+                fullscreenButton: false,
+                geocoder: false,
+                homeButton: false,
+                infoBox: false,
+                navigationHelpButton: false,
+                sceneModePicker: false,
+                selectionIndicator: false,
+                timeline: false,
+                vrButton: false,
+                terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+                baseLayer: false,
+                shouldAnimate: false
+            });
+            viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0b2530");
+            viewer.scene.globe.show = true;
+            viewer.scene.globe.enableLighting = false;
+            viewer.scene.screenSpaceCameraController.minimumZoomDistance = 500;
+            viewer.scene.screenSpaceCameraController.maximumZoomDistance = 40000000;
+            const satelliteLayer = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({
+                url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                credit: "Tiles © Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+                maximumLevel: 19
+            }));
+            const roadLayer = viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({
+                url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+                credit: "Tiles © Esri",
+                maximumLevel: 19
+            }));
+            roadLayer.show = false;
+            const satelliteButton = document.getElementById("satelliteButton");
+            const roadsButton = document.getElementById("roadsButton");
+            const headquartersButton = document.getElementById("headquartersButton");
+            satelliteButton.addEventListener("click", () => {
+                satelliteLayer.show = true;
+                roadLayer.show = false;
+                satelliteButton.classList.add("active");
+                roadsButton.classList.remove("active");
+                viewer.scene.requestRender();
+            });
+            roadsButton.addEventListener("click", () => {
+                satelliteLayer.show = false;
+                roadLayer.show = true;
+                roadsButton.classList.add("active");
+                satelliteButton.classList.remove("active");
+                viewer.scene.requestRender();
+            });
+            headquartersButton.addEventListener("click", () => {
+                if (!headquarters) {
+                    mapReadout.textContent = "Aucun siège social n’est enregistré dans les sites.";
+                    return;
+                }
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(headquarters.longitude, headquarters.latitude, 1800000),
+                    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+                    duration: 1.2
+                });
+            });
+            viewer.scene.renderError.addEventListener((_scene, error) => {
+                send({ type: "render-error", message: error && error.message ? error.message : String(error) });
+            });
+            viewer.scene.globe.tileLoadProgressEvent.addEventListener(queueLength => {
+                if (queueLength === 0) {
+                    viewer.scene.requestRender();
+                }
+            });
+            const dataEntities = [];
+            const entityDetails = new Map();
+            const mapInfo = document.getElementById("mapInfo");
+            const infoTitle = document.getElementById("infoTitle");
+            const infoBody = document.getElementById("infoBody");
+            const mapReadout = document.getElementById("mapReadout");
+            let routeProgressInterval = null;
+            let headquarters = null;
+            let fallbackGlobe = null;
+            let cameraCenteredOnEurope = false;
+            const point = (longitude, latitude) =>
+                Cesium.Cartesian3.fromDegrees(longitude, latitude, 0);
+            let cameraHomeSet = false;
+
+            function resizeViewer() {
+                viewer.resize();
+                if (!cameraHomeSet && viewer.container.clientWidth > 0 && viewer.container.clientHeight > 0) {
+                    viewer.camera.flyHome(0);
+                    cameraHomeSet = true;
+                }
+                viewer.scene.requestRender();
+            }
+
+            new ResizeObserver(resizeViewer).observe(viewer.container);
+            window.addEventListener("resize", resizeViewer);
+            const fallbackTexture = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=-180,-90,180,90&bboxSR=4326&size=2048,1024&imageSR=4326&format=jpg&f=image";
+            const surfaceCheck = window.setInterval(() => {
+                const visibleTiles = viewer.scene.globe._surface?._tilesToRender?.length ?? 0;
+                if (visibleTiles > 0) {
+                    if (fallbackGlobe) {
+                        viewer.entities.remove(fallbackGlobe);
+                        fallbackGlobe = null;
+                    }
+                    if (!cameraCenteredOnEurope) {
+                        viewer.camera.setView({
+                            destination: Cesium.Cartesian3.fromDegrees(12, 50, 9000000),
+                            orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }
+                        });
+                        cameraCenteredOnEurope = true;
+                    }
+                    window.clearInterval(surfaceCheck);
+                    return;
+                }
+                if (!fallbackGlobe && viewer.container.clientWidth > 0 && viewer.container.clientHeight > 0) {
+                    fallbackGlobe = viewer.entities.add({
+                        id: "fallback-earth",
+                        position: Cesium.Cartesian3.ZERO,
+                        ellipsoid: {
+                            radii: Cesium.Ellipsoid.WGS84.radii,
+                            material: new Cesium.ImageMaterialProperty({
+                                image: fallbackTexture,
+                                color: Cesium.Color.WHITE
+                            }),
+                            outline: true,
+                            outlineColor: Cesium.Color.fromCssColorString("#9bd3df"),
+                            slices: 96,
+                            stackPartitions: 48
+                        }
+                    });
+                    viewer.camera.setView({
+                        destination: Cesium.Cartesian3.fromDegrees(12, 50, 9000000),
+                        orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }
+                    });
+                    cameraCenteredOnEurope = true;
+                    viewer.scene.requestRender();
+                }
+            }, 2000);
+
+            function clearEntities(collection) {
+                collection.forEach(entity => viewer.entities.remove(entity));
+                collection.length = 0;
+                entityDetails.clear();
+                if (routeProgressInterval !== null) {
+                    window.clearInterval(routeProgressInterval);
+                    routeProgressInterval = null;
+                }
+                mapInfo.classList.remove("open");
+            }
+
+            function addInfoLine(label, value) {
+                if (value === undefined || value === null || String(value).trim() === "") return;
+                const line = document.createElement("p");
+                const key = document.createElement("strong");
+                key.textContent = label + " : ";
+                line.append(key, document.createTextNode(String(value)));
+                infoBody.appendChild(line);
+            }
+
+            function addInfoSection(title, items, formatter) {
+                if (!items || items.length === 0) return;
+                const heading = document.createElement("h3");
+                heading.textContent = title + " (" + items.length + ")";
+                infoBody.appendChild(heading);
+                items.slice(0, 5).forEach(item => {
+                    const line = document.createElement("p");
+                    line.className = "muted";
+                    line.textContent = formatter(item);
+                    infoBody.appendChild(line);
+                });
+                if (items.length > 5) {
+                    const more = document.createElement("p");
+                    more.className = "muted";
+                    more.textContent = "+" + (items.length - 5) + " autre(s)";
+                    infoBody.appendChild(more);
+                }
+            }
+
+            function formatRemainingTime(totalMinutes) {
+                const minutes = Math.max(0, Math.ceil(totalMinutes));
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                if (hours === 0) return `${remainingMinutes} min`;
+                if (remainingMinutes === 0) return `${hours} h`;
+                return `${hours} h ${remainingMinutes.toString().padStart(2, "0")}`;
+            }
+
+            function appendRouteInfo(route) {
+                const heading = document.createElement("h3");
+                heading.textContent = "Trajet à suivre";
+                infoBody.appendChild(heading);
+
+                if (!route) {
+                    const empty = document.createElement("p");
+                    empty.className = "muted";
+                    empty.textContent = "Aucun trajet associé ou planifié pour ce véhicule.";
+                    infoBody.appendChild(empty);
+                    return;
+                }
+
+                const card = document.createElement("div");
+                card.className = "route-card";
+                const endpoints = document.createElement("p");
+                endpoints.textContent = `${route.origin} → ${route.destination}`;
+                card.appendChild(endpoints);
+                const departure = document.createElement("p");
+                departure.className = "muted";
+                departure.textContent = `Départ prévu : ${route.departureLabel}`;
+                card.appendChild(departure);
+                const status = document.createElement("p");
+                status.className = "muted";
+                status.textContent = `Statut : ${route.status}`;
+                card.appendChild(status);
+
+                const track = document.createElement("div");
+                track.className = "route-track";
+                track.setAttribute("role", "progressbar");
+                track.setAttribute("aria-label", "Avancement estimé selon l'horaire");
+                track.setAttribute("aria-valuemin", "0");
+                track.setAttribute("aria-valuemax", "100");
+                const fill = document.createElement("div");
+                fill.className = "route-progress-fill";
+                track.appendChild(fill);
+                card.appendChild(track);
+                const progressLabel = document.createElement("p");
+                progressLabel.className = "muted";
+                card.appendChild(progressLabel);
+                const remaining = document.createElement("p");
+                card.appendChild(remaining);
+                const note = document.createElement("p");
+                note.className = "route-note";
+                note.textContent = "Estimation basée sur l'heure et la durée prévues, pas sur une position GPS en temps réel.";
+                card.appendChild(note);
+                infoBody.appendChild(card);
+
+                function refreshProgress() {
+                    if (!route.startAt || !Number.isFinite(route.durationMinutes) || route.durationMinutes <= 0) {
+                        fill.style.width = "0%";
+                        track.setAttribute("aria-valuenow", "0");
+                        progressLabel.textContent = "Avancement estimé : indisponible (horaire incomplet)";
+                        remaining.textContent = "Temps restant : non estimable";
+                        return;
+                    }
+
+                    const startAt = new Date(route.startAt);
+                    const now = new Date();
+                    const duration = route.durationMinutes;
+                    const plannedEnd = new Date(startAt.getTime() + duration * 60000);
+                    let percent;
+                    let remainingText;
+
+                    if (route.isCompleted) {
+                        percent = 100;
+                        remainingText = "Trajet marqué comme terminé";
+                    } else if (now < startAt) {
+                        percent = 0;
+                        remainingText = `Départ dans ${formatRemainingTime((startAt - now) / 60000)} · durée prévue ${formatRemainingTime(duration)}`;
+                    } else if (now < plannedEnd) {
+                        percent = Math.min(99, Math.max(0, Math.floor(((now - startAt) / (duration * 60000)) * 100)));
+                        remainingText = `Temps prévu restant : ${formatRemainingTime((plannedEnd - now) / 60000)}`;
+                    } else {
+                        percent = 99;
+                        remainingText = "Horaire prévu dépassé · arrivée à confirmer";
+                    }
+
+                    fill.style.width = `${percent}%`;
+                    track.setAttribute("aria-valuenow", String(percent));
+                    progressLabel.textContent = `Avancement estimé selon l'horaire : ${percent}%`;
+                    remaining.textContent = remainingText;
+                }
+
+                refreshProgress();
+                routeProgressInterval = window.setInterval(refreshProgress, 60000);
+            }
+
+            function showEntityInfo(entity) {
+                const details = entityDetails.get(entity.id);
+                if (!details) return;
+                if (routeProgressInterval !== null) {
+                    window.clearInterval(routeProgressInterval);
+                    routeProgressInterval = null;
+                }
+                infoTitle.textContent = details.title;
+                infoBody.replaceChildren();
+                addInfoLine("Type", details.type);
+                addInfoLine("Statut", details.state);
+                addInfoLine("Chauffeur", details.driver);
+                addInfoLine("Marque / modèle", [details.brand, details.model].filter(Boolean).join(" "));
+                addInfoLine("Immatriculation", details.plate);
+                addInfoLine("Lieu enregistré", details.location);
+                addInfoLine("Coordonnées", `${details.latitude.toFixed(5)}, ${details.longitude.toFixed(5)}`);
+                addInfoLine("Kilométrage", details.mileage ? details.mileage + " km" : "");
+                addInfoLine("Énergie", details.energy);
+                addInfoLine("Prochain contrôle", details.nextInspection);
+                addInfoLine("Informations", details.description);
+                if (details.type !== undefined) {
+                    appendRouteInfo(details.route);
+                }
+                addInfoLine("Catégorie du site", details.kind);
+                addInfoLine("Détails du site", details.details);
+                addInfoSection("Opérations", details.operations, operation =>
+                    `${operation.date}${operation.time ? " · " + operation.time : ""} — ${operation.kind}${operation.number ? " " + operation.number : ""} · ${operation.status}` +
+                    `${operation.driver ? " · " + operation.driver : ""}` +
+                    `${operation.nature ? " · " + operation.nature : ""}` +
+                    `${operation.location ? " · " + operation.location : ""}` +
+                    `${operation.destination ? " → " + operation.destination : ""}` +
+                    `${operation.details ? " · " + operation.details : ""}`);
+                addInfoSection("Tâches à suivre", details.tasks, task =>
+                    `${task.dueAt} — ${task.title} · ${task.status} · priorité ${task.priority}` +
+                    `${task.driver ? " · " + task.driver : ""}` +
+                    `${task.description ? " · " + task.description : ""}`);
+                mapInfo.classList.add("open");
+            }
+
+            document.getElementById("closeInfo").addEventListener("click", () => {
+                mapInfo.classList.remove("open");
+                if (routeProgressInterval !== null) {
+                    window.clearInterval(routeProgressInterval);
+                    routeProgressInterval = null;
+                }
+            });
+
+            function updateReadout(cartesian) {
+                const cameraHeight = Math.max(0, viewer.camera.positionCartographic.height);
+                const altitude = cameraHeight >= 1000
+                    ? `${Math.round(cameraHeight / 1000)} km`
+                    : `${Math.round(cameraHeight)} m`;
+                if (cartesian) {
+                    const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                    const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+                    const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+                    mapReadout.textContent = `${latitude.toFixed(4)}°, ${longitude.toFixed(4)}° · Altitude caméra ${altitude}`;
+                } else {
+                    mapReadout.textContent = `Coordonnées — · Altitude caméra ${altitude}`;
+                }
+            }
+
+            function renderData(data) {
+                clearEntities(dataEntities);
+                headquarters = data.headquarters || (data.sites || []).find(site => site.kind === "Siège social") || null;
+
+                (data.vehicles || []).forEach(vehicle => {
+                    const entity = viewer.entities.add({
+                        id: "vehicle-" + vehicle.id,
+                        position: point(vehicle.longitude, vehicle.latitude),
+                        point: {
+                            pixelSize: 11,
+                            color: Cesium.Color.fromCssColorString(vehicle.color || "#7CCB9B"),
+                            outlineColor: Cesium.Color.WHITE,
+                            outlineWidth: 2
+                        },
+                        label: {
+                            text: vehicle.identifier,
+                            font: "12px sans-serif",
+                            fillColor: Cesium.Color.WHITE,
+                            outlineColor: Cesium.Color.fromCssColorString("#06151d"),
+                            outlineWidth: 3,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            pixelOffset: new Cesium.Cartesian2(0, -18),
+                            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 250000),
+                            disableDepthTestDistance: 500000
+                        },
+                        properties: { entityType: "vehicle", recordId: vehicle.id }
+                    });
+                    dataEntities.push(entity);
+                    entityDetails.set(entity.id, {
+                        title: vehicle.identifier + " · " + vehicle.state,
+                        type: vehicle.type,
+                        state: vehicle.state,
+                        driver: vehicle.driver,
+                        brand: vehicle.brand,
+                        model: vehicle.model,
+                        plate: vehicle.plate,
+                        location: vehicle.location,
+                        latitude: vehicle.latitude,
+                        longitude: vehicle.longitude,
+                        mileage: vehicle.mileage,
+                        energy: vehicle.energy,
+                        nextInspection: vehicle.nextInspection,
+                        description: vehicle.description,
+                        route: vehicle.route,
+                        operations: vehicle.operations || [],
+                        tasks: vehicle.tasks || []
+                    });
+                });
+
+                (data.sites || []).forEach(site => {
+                    const entity = viewer.entities.add({
+                        id: "site-" + site.id,
+                        position: point(site.longitude, site.latitude),
+                        point: { pixelSize: 13, color: Cesium.Color.fromCssColorString("#c8a24a"), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
+                        label: {
+                            text: site.icon + " " + site.name,
+                            font: "13px sans-serif",
+                            fillColor: Cesium.Color.WHITE,
+                            outlineColor: Cesium.Color.fromCssColorString("#06151d"),
+                            outlineWidth: 3,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            pixelOffset: new Cesium.Cartesian2(0, -20),
+                            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 2200000),
+                            disableDepthTestDistance: 500000
+                        },
+                        properties: { entityType: "site", recordId: site.id, description: site.kind + (site.details ? "\n" + site.details : "") }
+                    });
+                    dataEntities.push(entity);
+                    entityDetails.set(entity.id, {
+                        title: site.icon + " " + site.name,
+                        kind: site.kind,
+                        details: site.details,
+                        latitude: site.latitude,
+                        longitude: site.longitude
+                    });
+                });
+            }
+
+            viewer.screenSpaceEventHandler.setInputAction(event => {
+                const picked = viewer.scene.pick(event.position);
+                const entity = picked && picked.id;
+                const properties = entity && entity.properties;
+                if (!properties) return;
+                showEntityInfo(entity);
+                const entityType = properties.entityType && properties.entityType.getValue();
+                const id = properties.recordId && properties.recordId.getValue();
+                if (entityType && id) send({ type: entityType, id });
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            viewer.screenSpaceEventHandler.setInputAction(event => {
+                const cartesian = viewer.camera.pickEllipsoid(event.endPosition, viewer.scene.globe.ellipsoid);
+                updateReadout(cartesian);
+            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            viewer.camera.changed.addEventListener(() => updateReadout());
+
+            if (webview) {
+                webview.addEventListener("message", event => {
+                    const message = event.data;
+                    if (message.type === "data") renderData(message);
+                    if (message.type === "resize") resizeViewer();
+                    if (message.type === "focus") {
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(message.longitude, message.latitude, 1200000),
+                            duration: 1
+                        });
+                    }
+                });
+            }
+            resizeViewer();
+            send({ type: "ready" });
+        })();
+    </script>
+</body>
+</html>

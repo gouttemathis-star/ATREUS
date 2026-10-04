@@ -8,33 +8,32 @@ using System.Windows.Input;
 
 namespace ATREUS;
 
-public partial class AssistantWindow : Window
+public partial class AssistantWindow : UserControl
 {
-    private readonly ApplicationData data;
-    private readonly UserAccount currentUser;
+    private ApplicationData data = new();
+    private UserAccount currentUser = new();
     private readonly LocalAiClient localAi = new();
     private readonly ObservableCollection<ChatMessage> messages = [];
 
-    public AssistantWindow(ApplicationData data, UserAccount currentUser, bool openSav = false)
+    public AssistantWindow()
     {
-        this.data = data;
-        this.currentUser = currentUser;
         InitializeComponent();
         MessagesList.ItemsSource = messages;
-        AssistantRuntimeLabel.Text = $"MODÈLE LOCAL · {data.LocalAiModel.ToUpperInvariant()}";
-
-        if (openSav)
-        {
-            AddAssistantMessage(GetSavContactMessage());
-        }
-        else
-        {
-            AddAssistantMessage(
-                $"Bonjour, je suis ATREUS, votre assistante pour cette application. " +
-                $"Vos réponses sont limitées aux informations autorisées pour le rôle « {currentUser.Role} ». " +
-                $"Le modèle génératif local configuré est « {data.LocalAiModel} » ; s’il n’est pas installé ou lancé dans Ollama, l’aide locale répondra sans modèle génératif.");
-        }
     }
+
+    public void Configure(ApplicationData source, UserAccount user)
+    {
+        data = source;
+        currentUser = user;
+        AssistantRuntimeLabel.Text = $"MODÈLE LOCAL · {data.LocalAiModel.ToUpperInvariant()}";
+        messages.Clear();
+        AddAssistantMessage(
+            $"Bonjour, je suis ATREUS, votre assistante pour cette application. " +
+            $"Vos réponses sont limitées aux informations autorisées pour le rôle « {currentUser.Role} ». " +
+            $"Le modèle génératif local configuré est « {data.LocalAiModel} » ; s’il n’est pas installé ou lancé dans Ollama, l’aide locale répondra sans modèle génératif.");
+    }
+
+    public void ShowAssistant() { }
 
     private async void SendClick(object sender, RoutedEventArgs e) => await SendQuestionAsync();
 
@@ -69,22 +68,29 @@ public partial class AssistantWindow : Window
         QuestionInput.IsEnabled = false;
         try
         {
-            var result = await localAi.AskAsync(
-                data.LocalAiModel,
-                BuildSystemPrompt(),
-                messages.TakeLast(16)
-                    .Select(message => new LocalAiMessage(message.Text, message.IsUser))
-                    .ToList());
-            if (result.Success && result.Answer is not null)
+            if (IsSupportQuestion(question))
             {
-                AssistantRuntimeLabel.Text = "IA GÉNÉRATIVE LOCALE · ACTIVE";
-                AddAssistantMessage(result.Answer);
+                AddAssistantMessage("Je ne traite pas les demandes SAV. Consultez l’onglet « SAV » pour la page de support M INDUSTRIE.");
             }
             else
             {
-                AssistantRuntimeLabel.Text = "AIDE SANS MODÈLE · MOTEUR LOCAL INDISPONIBLE";
-                AddAssistantMessage(AnswerQuestion(question) +
-                    $"\n\n⚠ {result.Error} Installez et lancez Ollama avec le modèle « {data.LocalAiModel} » pour activer les réponses génératives. Aucune question n’est envoyée sur Internet.");
+                var result = await localAi.AskAsync(
+                    data.LocalAiModel,
+                    BuildSystemPrompt(),
+                    messages.TakeLast(16)
+                        .Select(message => new LocalAiMessage(message.Text, message.IsUser))
+                        .ToList());
+                if (result.Success && result.Answer is not null)
+                {
+                    AssistantRuntimeLabel.Text = "IA GÉNÉRATIVE LOCALE · ACTIVE";
+                    AddAssistantMessage(result.Answer);
+                }
+                else
+                {
+                    AssistantRuntimeLabel.Text = "AIDE SANS MODÈLE · MOTEUR LOCAL INDISPONIBLE";
+                    AddAssistantMessage(AnswerQuestion(question) +
+                        $"\n\n⚠ {result.Error} Installez et lancez Ollama avec le modèle « {data.LocalAiModel} » pour activer les réponses génératives. Aucune question n’est envoyée sur Internet.");
+                }
             }
         }
         catch (HttpRequestException)
@@ -156,30 +162,72 @@ public partial class AssistantWindow : Window
 
     private string BuildOperationsContext()
     {
-        var permissions = UserRoles.Get(currentUser.Role);
+        var permissions = AccessControl.Resolve(currentUser);
         var sections = new List<string>();
         if (permissions.Fleet)
         {
-            sections.Add("Véhicules :\n" + string.Join("\n", data.Vehicles.Select(vehicle =>
+            sections.Add("Véhicules :\n" + string.Join("\n", GetVisibleVehicles().Select(vehicle =>
                 $"- {vehicle.Identifier}, {vehicle.Type}, {vehicle.Brand} {vehicle.Model}, état {vehicle.State}, chauffeur {data.DriverName(vehicle.DriverId)}, localisation {vehicle.Location}")));
         }
-        var visibleKinds = new HashSet<string>(StringComparer.Ordinal);
-        if (permissions.Incidents) visibleKinds.Add(OperationKinds.Incident);
-        if (permissions.Maintenance) visibleKinds.Add(OperationKinds.Maintenance);
-        if (permissions.ViewTrips) visibleKinds.Add(OperationKinds.Trip);
-        if (visibleKinds.Count > 0)
+        var visibleOperations = GetVisibleOperations().ToList();
+        if (visibleOperations.Count > 0)
         {
-            sections.Add("Opérations autorisées :\n" + string.Join("\n", data.Operations
-                .Where(operation => visibleKinds.Contains(operation.Kind))
+            sections.Add("Opérations autorisées :\n" + string.Join("\n", visibleOperations
                 .Select(operation =>
                     $"- {operation.Date:dd/MM/yyyy} {operation.Time}, {operation.Kind} {operation.Number}, {operation.Location} → {operation.Destination}, {operation.Nature}, statut {operation.Status}, chauffeur {data.DriverName(operation.DriverId)}")));
         }
-        if (permissions.Calendar)
+        var visibleTasks = GetVisibleTasks().ToList();
+        if (visibleTasks.Count > 0)
         {
-            sections.Add("Tâches :\n" + string.Join("\n", data.Tasks.Select(task =>
+            sections.Add("Tâches :\n" + string.Join("\n", visibleTasks.Select(task =>
                 $"- {task.DueAt:dd/MM/yyyy HH:mm}, {task.Title}, statut {task.Status}, priorité {task.Priority}, chauffeur {data.DriverName(task.DriverId)}, description {task.Description}")));
         }
         return sections.Count == 0 ? "Aucune donnée opérationnelle autorisée pour ce rôle." : string.Join("\n\n", sections);
+    }
+
+    private IEnumerable<Vehicle> GetVisibleVehicles() =>
+        AccessControl.Resolve(currentUser).Fleet ? data.Vehicles : [];
+
+    private IEnumerable<OperationRecord> GetVisibleOperations()
+    {
+        var permissions = AccessControl.Resolve(currentUser);
+        var incidentsAndMaintenance = data.Operations.Where(operation =>
+            operation.Kind == OperationKinds.Incident && permissions.Incidents ||
+            operation.Kind == OperationKinds.Maintenance && permissions.Maintenance);
+        var trips = data.Operations.Where(operation =>
+            operation.Kind == OperationKinds.Trip && permissions.GroupCalendar);
+        if (permissions.GroupCalendar)
+        {
+            return incidentsAndMaintenance.Concat(trips);
+        }
+
+        if (!permissions.PersonalCalendar || string.IsNullOrWhiteSpace(currentUser.DriverId))
+        {
+            return incidentsAndMaintenance;
+        }
+
+        return incidentsAndMaintenance.Concat(data.Operations.Where(operation =>
+            operation.Kind == OperationKinds.Trip &&
+            operation.DriverId == currentUser.DriverId ||
+            operation.Kind == OperationKinds.Trip && data.FindVehicle(operation.VehicleId)?.DriverId == currentUser.DriverId));
+    }
+
+    private IEnumerable<TaskItem> GetVisibleTasks()
+    {
+        var permissions = AccessControl.Resolve(currentUser);
+        if (permissions.GroupCalendar)
+        {
+            return data.Tasks;
+        }
+        if (!permissions.PersonalCalendar || string.IsNullOrWhiteSpace(currentUser.DriverId))
+        {
+            return [];
+        }
+
+        var driverId = currentUser.DriverId;
+        return data.Tasks.Where(task =>
+            task.DriverId == driverId ||
+            (task.DriverId is null && data.FindVehicle(task.VehicleId)?.DriverId == driverId));
     }
 
     private void AddAssistantMessage(string text)
@@ -187,6 +235,9 @@ public partial class AssistantWindow : Window
         messages.Add(new ChatMessage(text, false));
         ConversationScroll?.ScrollToEnd();
     }
+
+    private static bool IsSupportQuestion(string question) =>
+        ContainsAny(Normalize(question), "sav", "support", "conseiller", "humain", "contact", "reclamation", "assistance externe");
 
     private string AnswerQuestion(string question)
     {
@@ -198,18 +249,13 @@ public partial class AssistantWindow : Window
         var normalized = Normalize(question);
         var compact = normalized.Replace(" ", string.Empty, StringComparison.Ordinal);
 
-        if (ContainsAny(normalized, "sav", "support", "conseiller", "humain", "contact", "reclamation", "assistance externe"))
-        {
-            return GetSavContactMessage();
-        }
-
         if (ContainsAny(normalized, "bonjour", "salut", "bonsoir", "qui es tu", "qui etes vous", "aide"))
         {
             return "Je suis l’assistante locale ATREUS. Posez-moi une question sur votre parc, vos trajets, vos tâches, les incidents, les maintenances, le siège ou la carte. " +
-                "Je peux aussi vous orienter vers les informations SAV de démonstration.";
+                "Pour le support, consultez la page SAV.";
         }
 
-        var matchedVehicle = data.Vehicles.FirstOrDefault(vehicle =>
+        var matchedVehicle = GetVisibleVehicles().FirstOrDefault(vehicle =>
             (!string.IsNullOrWhiteSpace(vehicle.Identifier) &&
              compact.Contains(Normalize(vehicle.Identifier).Replace(" ", string.Empty, StringComparison.Ordinal), StringComparison.Ordinal)) ||
             (!string.IsNullOrWhiteSpace(vehicle.Plate) &&
@@ -221,6 +267,10 @@ public partial class AssistantWindow : Window
 
         if (ContainsAny(normalized, "siege", "domiciliation"))
         {
+            if (!AccessControl.Resolve(currentUser).Map)
+            {
+                return "Votre niveau d’accès ne permet pas de consulter ATREMAPS ou les sites enregistrés.";
+            }
             var headquarters = data.Sites.FirstOrDefault(site => site.Kind == SiteKinds.Headquarters);
             return headquarters is null
                 ? "Aucun siège social n’est enregistré dans les sites de l’application. Ajoutez-le depuis ATREMAPS."
@@ -231,7 +281,7 @@ public partial class AssistantWindow : Window
 
         if (ContainsAny(normalized, "trajet", "itineraire", "depart", "destination", "avancement", "parcours"))
         {
-            var trips = data.Operations
+            var trips = GetVisibleOperations()
                 .Where(operation => operation.Kind == OperationKinds.Trip)
                 .OrderByDescending(operation => operation.Date)
                 .Take(5)
@@ -252,7 +302,7 @@ public partial class AssistantWindow : Window
 
         if (ContainsAny(normalized, "calendrier", "tache", "retard", "echeance", "priorite"))
         {
-            var openTasks = data.Tasks.Where(task => task.Status is not "Terminée" and not "Annulée").ToList();
+            var openTasks = GetVisibleTasks().Where(task => task.Status is not "Terminée" and not "Annulée").ToList();
             var overdue = openTasks.Where(task =>
                 task.DueAt.Date < DateTime.Today ||
                 (task.HasTime && task.DueAt < DateTime.Now)).ToList();
@@ -272,10 +322,11 @@ public partial class AssistantWindow : Window
 
         if (ContainsAny(normalized, "parc", "vehicule", "flotte", "chauffeur", "disponible", "immatriculation"))
         {
-            var available = data.Vehicles.Count(vehicle => vehicle.State == "Disponible");
-            var maintenance = data.Vehicles.Count(vehicle => vehicle.State == "Maintenance");
-            var unavailable = data.Vehicles.Count(vehicle => vehicle.State == "Indisponible");
-            return $"Votre parc comprend {data.Vehicles.Count} véhicule(s) et {data.Drivers.Count} chauffeur(s) : " +
+            var vehicles = GetVisibleVehicles().ToList();
+            var available = vehicles.Count(vehicle => vehicle.State == "Disponible");
+            var maintenance = vehicles.Count(vehicle => vehicle.State == "Maintenance");
+            var unavailable = vehicles.Count(vehicle => vehicle.State == "Indisponible");
+            return $"Votre parc comprend {vehicles.Count} véhicule(s) : " +
                 $"{available} disponible(s), {maintenance} en maintenance et {unavailable} indisponible(s). " +
                 "Ouvrez « Parc matériel » pour parcourir et modifier les fiches, ou « ATREMAPS » pour voir les positions enregistrées. " +
                 "Vous pouvez également saisir l’identifiant d’un véhicule, par exemple AT-021.";
@@ -283,7 +334,7 @@ public partial class AssistantWindow : Window
 
         if (ContainsAny(normalized, "incident", "maintenance", "entretien", "panne", "operation"))
         {
-            var active = data.Operations.Where(operation =>
+            var active = GetVisibleOperations().Where(operation =>
                 operation.Status is not "Terminée" and not "Terminé" and not "Annulée" and not "Annulé" and not "Clôturé").ToList();
             var incidents = active.Count(operation => operation.Kind == OperationKinds.Incident);
             var maintenances = active.Count(operation => operation.Kind == OperationKinds.Maintenance);
@@ -300,8 +351,7 @@ public partial class AssistantWindow : Window
         }
 
         return "Je n’ai pas trouvé de réponse sûre à cette question dans les données et l’aide locales d’ATREUS. " +
-            "Reformulez votre demande en précisant un identifiant de véhicule, un trajet, une tâche ou une opération ; " +
-            "sinon, voici la fiche SAV de démonstration.\n\n" + GetSavContactMessage();
+            "Reformulez votre demande en précisant un identifiant de véhicule, un trajet, une tâche ou une opération.";
     }
 
     private string AnswerDriverQuestion(string question)
@@ -370,7 +420,7 @@ public partial class AssistantWindow : Window
 
     private string AnswerVehicle(Vehicle vehicle)
     {
-        var operations = data.Operations
+        var operations = GetVisibleOperations()
             .Where(operation => operation.VehicleId == vehicle.Id)
             .OrderByDescending(operation => operation.Date)
             .Take(3)
@@ -394,15 +444,6 @@ public partial class AssistantWindow : Window
         return answer;
     }
 
-    private static string GetSavContactMessage() =>
-        "Je ne peux pas transférer votre demande à un conseiller depuis cette version. Voici uniquement un exemple de fiche SAV :\n\n" +
-        "DÉMONSTRATION — COORDONNÉES FICTIVES, NE PAS CONTACTER\n" +
-        "Téléphone : 01 00 00 00 00 (numéro fictif)\n" +
-        "Courriel : sav@atreus.invalid (adresse volontairement non distribuable)\n" +
-        "Adresse : non renseignée\n" +
-        "Horaires d’exemple : du lundi au vendredi, de 9 h à 17 h (à confirmer).\n\n" +
-        "Remplacez ces exemples par les coordonnées officielles avant toute diffusion du logiciel.";
-
     private static bool ContainsAny(string text, params string[] terms) =>
         terms.Any(term => text.Contains(term, StringComparison.Ordinal));
 
@@ -420,7 +461,7 @@ public partial class AssistantWindow : Window
         return string.Join(' ', builder.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
-    private void CloseClick(object sender, RoutedEventArgs e) => Close();
+    private void NewConversationClick(object sender, RoutedEventArgs e) => Configure(data, currentUser);
 
     private sealed record ChatMessage(string Text, bool IsUser);
 }

@@ -73,19 +73,19 @@ public static class UserRoles
 
     public static IReadOnlyList<UserRoleDefinition> Definitions { get; } =
     [
-        new(Administrator, "🔐", "Accès complet, gestion des comptes et paramétrage.", true, true, true, true, true, true, true, true, true, true, true, true, true),
-        new(Operations, "🧭", "Pilotage quotidien du parc et des opérations.", true, true, true, true, true, true, true, true, true, true, true, false, true),
-        new(Driver, "🚚", "Planning, trajets et véhicule(s) qui lui sont attribués.", false, false, false, false, false, false, false, false, false, false, false, false, false, true),
-        new(FleetManager, "🚗", "Gestion du parc, des affectations, des opérations et du calendrier.", true, true, true, true, true, true, true, true, true, true, true, false, true),
-        new(Mechanic, "🔧", "Consultation du parc et gestion des maintenances et tâches atelier.", true, false, true, false, true, true, false, false, true, false, true, false, false),
-        new(Planner, "🗓️", "Organisation et gestion des trajets et des tâches.", true, true, true, false, false, true, false, false, false, true, true, false, false),
-        new(Secretary, "📋", "Consultation du parc et gestion du calendrier administratif.", true, false, true, false, false, true, false, false, false, false, true, false, false),
-        new(Safety, "🦺", "Suivi et traitement des incidents et du calendrier associé.", true, false, false, true, false, true, false, true, false, false, true, false, false),
-        new(Accounting, "💶", "Consultation du tableau de bord et du parc, sans modification.", true, false, true, false, false, false, false, false, false, false, false, false, true),
-        new(Observer, "👁️", "Consultation en lecture seule des vues opérationnelles.", true, true, true, true, true, true, false, false, false, false, false, false, false),
-        new(Procurement, "🛒", "Consultation du parc et suivi des maintenances et tâches.", true, false, true, false, true, true, false, false, true, false, true, false, false),
-        new(Garage, "🏭", "Accès au parc et traitement des maintenances et tâches atelier.", false, false, true, false, true, true, false, false, true, false, true, false, false),
-        new(Management, "💼", "Vue de pilotage et consultation du parc et des opérations.", true, true, true, true, true, true, false, false, false, false, false, false, true)
+        new(Administrator, "🔐", "Administrateur ATREUS."),
+        new(Operations, "🧭", "Personnel d’exploitation."),
+        new(Driver, "🚚", "Conducteur associé à une fiche chauffeur."),
+        new(FleetManager, "🚗", "Responsable du parc automobile."),
+        new(Mechanic, "🔧", "Mécanicien ou personnel atelier."),
+        new(Planner, "🗓️", "Planificateur des trajets et des tâches."),
+        new(Secretary, "📋", "Secrétariat."),
+        new(Safety, "🦺", "Sécurité et prévention."),
+        new(Accounting, "💶", "Comptabilité."),
+        new(Observer, "👁️", "Consultation en lecture seule."),
+        new(Procurement, "🛒", "Approvisionnement."),
+        new(Garage, "🏭", "Garage ou réparateur partenaire."),
+        new(Management, "💼", "Direction.")
     ];
 
     public static IReadOnlyList<string> All { get; } = Definitions.Select(role => role.Name).ToList();
@@ -100,25 +100,9 @@ public static class UserRoles
 public sealed record UserRoleDefinition(
     string Name,
     string Emoji,
-    string Description,
-    bool Dashboard,
-    bool Map,
-    bool Fleet,
-    bool Incidents,
-    bool Maintenance,
-    bool Calendar,
-    bool ManageFleet,
-    bool ManageIncidents,
-    bool ManageMaintenance,
-    bool ManageTrips,
-    bool ManageTasks,
-    bool ManageAccounts,
-    bool Export,
-    bool PersonalPlanning = false)
+    string Description)
 {
     public string Display => $"{Emoji}  {Name}";
-    public bool ViewTrips => ManageTrips ||
-        Name is UserRoles.Administrator or UserRoles.Operations or UserRoles.FleetManager or UserRoles.Observer or UserRoles.Management;
 }
 
 public sealed class UserAccount
@@ -127,10 +111,174 @@ public sealed class UserAccount
     public string UserName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string Role { get; set; } = UserRoles.Operations;
+    public string AccessLevel { get; set; } = AccessLevels.Level1;
+    public bool CanViewDashboard { get; set; } = true;
+    public bool CanViewFleet { get; set; } = true;
+    public bool CanViewIncidents { get; set; } = true;
+    public bool CanViewMaintenance { get; set; } = true;
+    public bool CanViewMap { get; set; }
+    public bool CanViewPersonalCalendar { get; set; } = true;
+    public bool CanViewGroupCalendar { get; set; }
+    public bool CanUseAssistant { get; set; } = true;
+    public bool CanUseSav { get; set; } = true;
+    public bool CanCreateVehicles { get; set; }
+    public bool CanEditVehicles { get; set; }
+    public bool CanDeleteVehicles { get; set; }
+    public bool CanManageIncidents { get; set; }
+    public bool CanManageMaintenance { get; set; }
+    public bool CanManageTasks { get; set; }
+    public bool CanManageTrips { get; set; }
+    public bool CanExport { get; set; }
+    public bool CanManageAccounts { get; set; }
     public string? DriverId { get; set; }
     public string PasswordSalt { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
+}
+
+public sealed class PasswordResetRequest
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string UserName { get; set; } = string.Empty;
+    public DateTime RequestedAt { get; set; } = DateTime.Now;
+    public string Status { get; set; } = "En attente";
+    public DateTime? ResolvedAt { get; set; }
+}
+
+public static class AccessLevels
+{
+    public const string Level1 = "Niveau 1";
+    public const string Level2 = "Niveau 2";
+    public const string Level3 = "Niveau 3";
+    public const string Special = "Spécial";
+
+    public static IReadOnlyList<string> All { get; } = [Level1, Level2, Level3, Special];
+}
+
+public sealed record AccessPermissions(
+    bool Dashboard,
+    bool Fleet,
+    bool Incidents,
+    bool Maintenance,
+    bool Map,
+    bool PersonalCalendar,
+    bool GroupCalendar,
+    bool Assistant,
+    bool Sav,
+    bool CreateVehicles,
+    bool EditVehicles,
+    bool DeleteVehicles,
+    bool ManageIncidents,
+    bool ManageMaintenance,
+    bool ManageTasks,
+    bool ManageTrips,
+    bool Export,
+    bool ManageAccounts);
+
+public static class AccessControl
+{
+    private static readonly HashSet<string> ProtectedAdminUserNames =
+        new(["Maxence", "Mathis G"], StringComparer.OrdinalIgnoreCase);
+
+    public static bool IsProtectedAdministrator(UserAccount? user) =>
+        user is not null && ProtectedAdminUserNames.Contains(user.UserName);
+
+    public static string AccountDisplay(UserAccount user) =>
+        IsProtectedAdministrator(user) ? "👑 ADMINISTRATEUR ATREUS" : UserRoles.Display(user.Role);
+
+    public static AccessPermissions Resolve(UserAccount user)
+    {
+        if (IsProtectedAdministrator(user) || user.AccessLevel == AccessLevels.Level3)
+        {
+            return new(true, true, true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true);
+        }
+
+        if (user.AccessLevel == AccessLevels.Level1)
+        {
+            return new(true, true, true, true, false, true, false, true, true, false, false, false,
+                false, false, false, false, false, false);
+        }
+
+        if (user.AccessLevel == AccessLevels.Level2)
+        {
+            return new(true, true, true, true, true, true, true, true, true, false, false, false,
+                false, false, false, false, false, false);
+        }
+
+        var isSpecial = user.AccessLevel != AccessLevels.Level1 &&
+            user.AccessLevel != AccessLevels.Level2 &&
+            user.AccessLevel != AccessLevels.Level3;
+        return new(
+            user.CanViewDashboard,
+            user.CanViewFleet,
+            user.CanViewIncidents,
+            user.CanViewMaintenance,
+            user.CanViewMap,
+            user.CanViewPersonalCalendar,
+            user.CanViewGroupCalendar,
+            user.CanUseAssistant,
+            user.CanUseSav,
+            !isSpecial && user.CanCreateVehicles,
+            user.CanEditVehicles,
+            !isSpecial && user.CanDeleteVehicles,
+            user.CanManageIncidents,
+            user.CanManageMaintenance,
+            user.CanManageTasks,
+            user.CanManageTrips,
+            user.CanExport,
+            user.CanManageAccounts);
+    }
+
+    public static void ApplyPreset(UserAccount user, string accessLevel)
+    {
+        if (!AccessLevels.All.Contains(accessLevel, StringComparer.Ordinal))
+        {
+            throw new ArgumentException("Le niveau d’accès sélectionné n’est pas valide.");
+        }
+
+        user.AccessLevel = accessLevel;
+        if (accessLevel == AccessLevels.Level1)
+        {
+            Set(user, true, true, true, true, false, true, false, true, true, false, false, false, false, false, false, false, false, false);
+        }
+        else if (accessLevel == AccessLevels.Level2)
+        {
+            Set(user, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false);
+        }
+        else if (accessLevel == AccessLevels.Level3)
+        {
+            Set(user, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+        }
+    }
+
+    private static void Set(
+        UserAccount user,
+        bool dashboard, bool fleet, bool incidents, bool maintenance, bool map,
+        bool personalCalendar, bool groupCalendar, bool assistant, bool sav,
+        bool createVehicles, bool editVehicles, bool deleteVehicles,
+        bool manageIncidents, bool manageMaintenance, bool manageTasks,
+        bool manageTrips, bool export, bool manageAccounts)
+    {
+        user.CanViewDashboard = dashboard;
+        user.CanViewFleet = fleet;
+        user.CanViewIncidents = incidents;
+        user.CanViewMaintenance = maintenance;
+        user.CanViewMap = map;
+        user.CanViewPersonalCalendar = personalCalendar;
+        user.CanViewGroupCalendar = groupCalendar;
+        user.CanUseAssistant = assistant;
+        user.CanUseSav = sav;
+        user.CanCreateVehicles = createVehicles;
+        user.CanEditVehicles = editVehicles;
+        user.CanDeleteVehicles = deleteVehicles;
+        user.CanManageIncidents = manageIncidents;
+        user.CanManageMaintenance = manageMaintenance;
+        user.CanManageTasks = manageTasks;
+        user.CanManageTrips = manageTrips;
+        user.CanExport = export;
+        user.CanManageAccounts = manageAccounts;
+    }
 }
 
 public sealed class Vehicle
@@ -244,6 +392,7 @@ public sealed class SiteKindOption(string name, string icon)
 public sealed class ApplicationData
 {
     public int DemoContentVersion { get; set; }
+    public int AccessControlVersion { get; set; }
     public string LocalAiModel { get; set; } = "qwen2.5:3b";
     public List<Vehicle> Vehicles { get; set; } = [];
     public List<VehicleCategory> VehicleCategories { get; set; } = VehicleTypes.Defaults.Select(category => new VehicleCategory { Name = category.Name, Emoji = category.Emoji }).ToList();
@@ -252,6 +401,7 @@ public sealed class ApplicationData
     public List<TaskItem> Tasks { get; set; } = [];
     public List<SiteLocation> Sites { get; set; } = [];
     public List<UserAccount> Users { get; set; } = [];
+    public List<PasswordResetRequest> PasswordResetRequests { get; set; } = [];
 
     public Driver? FindDriver(string? id) => Drivers.FirstOrDefault(driver => driver.Id == id);
     public UserAccount? FindUser(string? id) => Users.FirstOrDefault(user => user.Id == id);

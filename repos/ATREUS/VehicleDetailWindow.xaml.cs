@@ -9,18 +9,24 @@ public partial class VehicleDetailWindow : Window
     private readonly Vehicle vehicle;
     private readonly ApplicationData data;
     private readonly bool canEdit;
+    private readonly bool canDelete;
     private bool isEditing;
     private bool updatingTypes;
     private string? selectedTypeName;
     public Vehicle? UpdatedVehicle { get; private set; }
+    public bool WasDeleted { get; private set; }
 
-    public VehicleDetailWindow(Vehicle vehicle, ApplicationData data, bool? allowEdit = null)
+    public VehicleDetailWindow(Vehicle vehicle, ApplicationData data, bool? allowEdit = null, bool? allowDelete = null)
     {
         this.vehicle = vehicle;
         this.data = data;
-        canEdit = allowEdit ?? UserRoles.Get((Application.Current as App)?.AuthenticatedUser?.Role).ManageFleet;
+        var actor = (Application.Current as App)?.AuthenticatedUser;
+        var permissions = actor is null ? null : AccessControl.Resolve(actor);
+        canEdit = allowEdit ?? (permissions?.EditVehicles ?? false);
+        canDelete = allowDelete ?? (permissions?.DeleteVehicles ?? false);
         InitializeComponent();
         EditButton.Visibility = canEdit ? Visibility.Visible : Visibility.Collapsed;
+        DeleteButton.Visibility = canDelete ? Visibility.Visible : Visibility.Collapsed;
         RefreshTypes(vehicle.Type);
         DriverInput.ItemsSource = data.Drivers;
         LoadVehicle();
@@ -60,15 +66,26 @@ public partial class VehicleDetailWindow : Window
 
     private void RefreshHistory()
     {
-        var permissions = UserRoles.Get((Application.Current as App)?.AuthenticatedUser?.Role);
+        var permissions = (Application.Current as App)?.AuthenticatedUser is UserAccount actor
+            ? AccessControl.Resolve(actor)
+            : null;
         var visibleKinds = new HashSet<string>(StringComparer.Ordinal);
-        if (permissions.Incidents) visibleKinds.Add(OperationKinds.Incident);
-        if (permissions.Maintenance) visibleKinds.Add(OperationKinds.Maintenance);
-        if (permissions.ViewTrips) visibleKinds.Add(OperationKinds.Trip);
+        if (permissions?.Incidents == true) visibleKinds.Add(OperationKinds.Incident);
+        if (permissions?.Maintenance == true) visibleKinds.Add(OperationKinds.Maintenance);
+        if (permissions?.GroupCalendar == true) visibleKinds.Add(OperationKinds.Trip);
         var operations = data.Operations.Where(operation => operation.VehicleId == vehicle.Id)
             .Where(operation => visibleKinds.Contains(operation.Kind))
             .OrderByDescending(operation => operation.Date)
-            .Select(operation => new HistoryRow(operation, operation.Date.ToString("dd/MM/yyyy"), data.DriverName(operation.DriverId)))
+            .Select(operation => new HistoryRow(
+                operation,
+                operation.Date.ToString("dd/MM/yyyy"),
+                data.DriverName(operation.DriverId),
+                operation.Kind switch
+                {
+                    var kind when kind == OperationKinds.Incident => permissions?.ManageIncidents == true,
+                    var kind when kind == OperationKinds.Maintenance => permissions?.ManageMaintenance == true,
+                    _ => permissions?.ManageTrips == true
+                }))
             .ToList();
         HistoryList.ItemsSource = operations;
         HistoryCountLabel.Text = $"{operations.Count} entrée(s)";
@@ -77,9 +94,21 @@ public partial class VehicleDetailWindow : Window
 
     private void RefreshTasks()
     {
+        var permissions = (Application.Current as App)?.AuthenticatedUser is UserAccount actor
+            ? AccessControl.Resolve(actor)
+            : null;
+        var driverId = (Application.Current as App)?.AuthenticatedUser?.DriverId;
+        var canViewGroup = permissions?.GroupCalendar == true;
+        var canViewPersonal = permissions?.PersonalCalendar == true && !string.IsNullOrWhiteSpace(driverId);
         var tasks = data.Tasks.Where(task => task.VehicleId == vehicle.Id)
+            .Where(task => canViewGroup ||
+                (canViewPersonal && (task.DriverId == driverId ||
+                    (task.DriverId is null && data.FindVehicle(task.VehicleId)?.DriverId == driverId))))
             .OrderBy(task => task.DueAt)
-            .Select(task => new VehicleTaskRow($"{task.DueAt:dd/MM/yyyy}{(task.HasTime ? $" · {task.DueAt:HH:mm}{(task.EndAt is DateTime endAt ? $"–{endAt:HH:mm}" : string.Empty)}" : string.Empty)} · {task.Title} · {task.Status}", task))
+            .Select(task => new VehicleTaskRow(
+                $"{task.DueAt:dd/MM/yyyy}{(task.HasTime ? $" · {task.DueAt:HH:mm}{(task.EndAt is DateTime endAt ? $"–{endAt:HH:mm}" : string.Empty)}" : string.Empty)} · {task.Title} · {task.Status}",
+                task,
+                permissions?.ManageTasks == true))
             .ToList();
         VehicleTasksList.ItemsSource = tasks;
         TaskCountLabel.Text = $"{tasks.Count} tâche(s)";
@@ -213,7 +242,14 @@ public partial class VehicleDetailWindow : Window
 
     private void HistoryItemClick(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is OperationRecord operation)
+        if ((sender as FrameworkElement)?.Tag is OperationRecord operation &&
+            (Application.Current as App)?.AuthenticatedUser is UserAccount actor &&
+            operation.Kind switch
+            {
+                var kind when kind == OperationKinds.Incident => AccessControl.Resolve(actor).ManageIncidents,
+                var kind when kind == OperationKinds.Maintenance => AccessControl.Resolve(actor).ManageMaintenance,
+                _ => AccessControl.Resolve(actor).ManageTrips
+            })
         {
             var dialog = new OperationEditWindow(operation, operation.Kind, data) { Owner = this };
             dialog.ShowDialog();
@@ -224,7 +260,9 @@ public partial class VehicleDetailWindow : Window
 
     private void TaskItemClick(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is TaskItem task)
+        if ((sender as FrameworkElement)?.Tag is TaskItem task &&
+            (Application.Current as App)?.AuthenticatedUser is UserAccount actor &&
+            AccessControl.Resolve(actor).ManageTasks)
         {
             new TaskEditWindow(task, data) { Owner = this }.ShowDialog();
             RefreshTasks();
@@ -244,6 +282,24 @@ public partial class VehicleDetailWindow : Window
         DialogResult = UpdatedVehicle is not null;
     }
 
-    private sealed record HistoryRow(OperationRecord Operation, string Date, string DriverName);
-    private sealed record VehicleTaskRow(string Display, TaskItem Task);
+    private void DeleteClick(object sender, RoutedEventArgs e)
+    {
+        if (!canDelete || !AccountSecurity.CanDeleteVehicle((Application.Current as App)?.AuthenticatedUser))
+        {
+            MessageBox.Show("Votre niveau ne permet pas de supprimer ce véhicule.", "Accès refusé",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (MessageBox.Show($"Supprimer définitivement le véhicule « {vehicle.Identifier} » ?",
+                "Confirmer la suppression", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        WasDeleted = true;
+        DialogResult = true;
+    }
+
+    private sealed record HistoryRow(OperationRecord Operation, string Date, string DriverName, bool CanEdit);
+    private sealed record VehicleTaskRow(string Display, TaskItem Task, bool CanEdit);
 }

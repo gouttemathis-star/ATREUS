@@ -10,11 +10,11 @@ none
 false
 TRACE;RELEASE;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\atreus\ATREUS\repos\ATREUS\App.xaml
-19-98818167
+20-1213714904
 428998102
-26-2131676986
+271456263032
 2011602652297
-AccessKeyWindow.xaml;AccountSetupWindow.xaml;AddDriverWindow.xaml;AddUserWindow.xaml;AddVehicleCategoryWindow.xaml;AddVehicleWindow.xaml;AssistantWindow.xaml;CalendarView.xaml;DriverDetailWindow.xaml;LoginWindow.xaml;MainWindow.xaml;MapView.xaml;MaterialView.xaml;OperationEditWindow.xaml;OperationsView.xaml;SiteLocationWindow.xaml;TaskEditWindow.xaml;UserManagementWindow.xaml;VehicleDetailWindow.xaml;
+AccessKeyWindow.xaml;AccountSetupWindow.xaml;AddDriverWindow.xaml;AddUserWindow.xaml;AddVehicleCategoryWindow.xaml;AddVehicleWindow.xaml;AssistantWindow.xaml;CalendarView.xaml;DriverDetailWindow.xaml;LoginWindow.xaml;MainWindow.xaml;MapView.xaml;MaterialView.xaml;OperationEditWindow.xaml;OperationsView.xaml;SavSupportView.xaml;SiteLocationWindow.xaml;TaskEditWindow.xaml;UserManagementWindow.xaml;VehicleDetailWindow.xaml;
 
 False
 

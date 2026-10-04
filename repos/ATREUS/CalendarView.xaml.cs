@@ -12,6 +12,7 @@ public partial class CalendarView : UserControl
     private static readonly string[] WeekdayNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
     private ApplicationData? data;
     private Driver? planningDriver;
+    private bool personalPlanning;
     private bool canManageTasks = true;
     private bool canManageTrips = true;
     private bool canViewTrips = true;
@@ -36,6 +37,7 @@ public partial class CalendarView : UserControl
     {
         data = source;
         planningDriver = null;
+        personalPlanning = false;
         canManageTasks = allowTaskChanges;
         canManageTrips = allowTripChanges;
         canViewTrips = allowTripViewing || allowTripChanges;
@@ -46,15 +48,18 @@ public partial class CalendarView : UserControl
         Refresh();
     }
 
-    public void ShowDriverPlan(ApplicationData source, Driver driver)
+    public void ShowPersonalPlan(ApplicationData source, Driver? driver)
     {
         data = source;
         planningDriver = driver;
+        personalPlanning = true;
         canManageTasks = false;
         canManageTrips = false;
-        canViewTrips = true;
+        canViewTrips = driver is not null;
         CalendarTitle.Text = "Mon planning";
-        CalendarSubtitle.Text = $"Planning personnel de {driver.Name} · tâches et trajets qui vous sont attribués.";
+        CalendarSubtitle.Text = driver is null
+            ? "Aucune fiche chauffeur n’est associée à ce compte ; le planning personnel est vide."
+            : $"Planning personnel de {driver.Name} · tâches et trajets qui vous sont attribués.";
         AddTripButton.Visibility = Visibility.Collapsed;
         AddTaskButton.Visibility = Visibility.Collapsed;
         Refresh();
@@ -158,10 +163,10 @@ public partial class CalendarView : UserControl
             Padding = new Thickness(isDayView ? 17 : 8),
             Tag = date,
             Cursor = Cursors.Hand,
-            AllowDrop = planningDriver is null && (canManageTasks || canManageTrips)
+            AllowDrop = !personalPlanning && (canManageTasks || canManageTrips)
         };
         outer.MouseLeftButtonDown += DayCellClick;
-        if (planningDriver is null && (canManageTasks || canManageTrips))
+        if (!personalPlanning && (canManageTasks || canManageTrips))
         {
             outer.DragOver += DayCellDragOver;
             outer.Drop += DayCellDrop;
@@ -196,8 +201,8 @@ public partial class CalendarView : UserControl
             FontSize = 16,
             ToolTip = "Ajouter une tâche à cette date"
         };
-        addButton.Visibility = planningDriver is null && canManageTasks ? Visibility.Visible : Visibility.Collapsed;
-        if (planningDriver is null && canManageTasks)
+        addButton.Visibility = !personalPlanning && canManageTasks ? Visibility.Visible : Visibility.Collapsed;
+        if (!personalPlanning && canManageTasks)
         {
             addButton.Click += AddForDateClick;
         }
@@ -217,7 +222,7 @@ public partial class CalendarView : UserControl
             {
                 tasksPanel.Children.Add(new TextBlock
                 {
-                    Text = planningDriver is null
+                    Text = !personalPlanning
                         ? "Aucune tâche ni aucun trajet prévu. Cliquez sur + pour planifier votre journée."
                         : "Aucune tâche ni aucune opération prévue dans votre planning.",
                     Foreground = new SolidColorBrush(Color.FromRgb(145, 165, 173)),
@@ -374,7 +379,7 @@ public partial class CalendarView : UserControl
             Cursor = Cursors.Hand
         };
         card.MouseLeftButtonDown += CalendarCardClick;
-        if (planningDriver is null)
+        if (!personalPlanning)
         {
             card.PreviewMouseLeftButtonDown += (_, e) => taskDragStart = e.GetPosition(this);
             card.PreviewMouseMove += (_, e) =>
@@ -453,7 +458,7 @@ public partial class CalendarView : UserControl
         var entries = data.Tasks.Select(CalendarEntry.ForTask)
             .Concat(data.Operations
                 .Where(operation => (canViewTrips && operation.Kind == OperationKinds.Trip) ||
-                    (planningDriver is not null && operation.Kind is OperationKinds.Incident or OperationKinds.Maintenance))
+                    (personalPlanning && operation.Kind is OperationKinds.Incident or OperationKinds.Maintenance))
                 .Select(CalendarEntry.ForTrip));
         if (filter == "En retard")
         {
@@ -468,11 +473,14 @@ public partial class CalendarView : UserControl
             entries = entries.Where(entry => entry.IsCompleted);
         }
 
-        if (planningDriver is not null)
+        if (personalPlanning)
         {
+            if (planningDriver is null)
+            {
+                return [];
+            }
             var driverId = planningDriver.Id;
-            entries = entries.Where(entry =>
-                entry.Task is TaskItem task &&
+            entries = entries.Where(entry => entry.Task is TaskItem task &&
                     (task.DriverId == driverId ||
                      (task.DriverId is null && data.FindVehicle(task.VehicleId)?.DriverId == driverId)) ||
                 entry.Trip is OperationRecord trip &&
@@ -488,7 +496,7 @@ public partial class CalendarView : UserControl
     private static bool IsOpen(CalendarEntry entry) => !entry.IsCompleted && !entry.IsCancelled;
 
     private bool CanManageEntry(CalendarEntry entry) =>
-        planningDriver is null && (entry.Task is not null ? canManageTasks : canManageTrips);
+        !personalPlanning && (entry.Task is not null ? canManageTasks : canManageTrips);
 
     private static bool IsOverdue(CalendarEntry entry)
     {

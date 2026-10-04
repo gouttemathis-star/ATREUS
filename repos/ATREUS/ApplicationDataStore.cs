@@ -31,8 +31,23 @@ public static class ApplicationDataStore
         data.Tasks ??= [];
         data.Sites ??= [];
         data.Users ??= [];
+        data.PasswordResetRequests ??= [];
         var changed = string.IsNullOrWhiteSpace(data.LocalAiModel);
         data.LocalAiModel = string.IsNullOrWhiteSpace(data.LocalAiModel) ? "qwen2.5:3b" : data.LocalAiModel;
+        if (data.AccessControlVersion < 1)
+        {
+            foreach (var user in data.Users)
+            {
+                var isAdmin = user.Role == UserRoles.Administrator || AccessControl.IsProtectedAdministrator(user);
+                AccessControl.ApplyPreset(user, isAdmin ? AccessLevels.Level3 : AccessLevels.Level1);
+                if (AccessControl.IsProtectedAdministrator(user))
+                {
+                    user.Role = UserRoles.Administrator;
+                }
+            }
+            data.AccessControlVersion = 1;
+            changed = true;
+        }
         changed |= data.EnsureVehicleCategories();
         changed |= EnsureDemonstrationContent(data);
         if (changed)
@@ -53,6 +68,7 @@ public static class ApplicationDataStore
     private static ApplicationData CreateInitialData()
     {
         var data = new ApplicationData();
+        data.AccessControlVersion = 1;
         var drivers = new[]
         {
             new Driver { Name = "Camille Bernard", Phone = "06 10 20 30 40" },

@@ -75,7 +75,7 @@ namespace ATREUS {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ATREUS;V1.0.0.0;component/adddriverwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ATREUS;component/adddriverwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\AddDriverWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

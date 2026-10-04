@@ -14,6 +14,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private readonly ApplicationData data;
     private readonly UserAccount currentUser;
+    private readonly AccessPermissions permissions;
+    private readonly AssistantWindow assistantContent;
+    private readonly UserManagementWindow userManagementContent;
     public ObservableCollection<Vehicle> VisibleVehicles { get; } = [];
     public ObservableCollection<Vehicle> AlertVehicles { get; } = [];
     public int ReferenceCount => data.Vehicles.Count;
@@ -32,8 +35,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         this.data = data;
         this.currentUser = currentUser;
+        permissions = AccessControl.Resolve(currentUser);
         InitializeComponent();
         DataContext = this;
+        assistantContent = new AssistantWindow();
+        assistantContent.Configure(data, currentUser);
+        AssistantHost.Content = assistantContent;
+        userManagementContent = new UserManagementWindow(data, currentUser);
+        userManagementContent.ReturnRequested += ReturnFromAccounts;
+        userManagementContent.PendingRequestCountChanged += UpdateAccountAlertIndicator;
+        UserManagementHost.Content = userManagementContent;
+        userManagementContent.RefreshView();
         ConfigureRoleAccess();
         RefreshTypeFilter();
         RefreshVehicles();
@@ -43,55 +55,81 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         OperationsView.DriverRequested += OpenDriver;
         CalendarView.VehicleRequested += OpenVehicle;
         CalendarView.DriverRequested += OpenDriver;
-        if (currentUser.Role == UserRoles.Driver)
+        if (currentUser.Role == UserRoles.Driver && permissions.PersonalCalendar)
         {
             DriverPlanningClick(this, new RoutedEventArgs());
         }
-        else if (UserRoles.Get(currentUser.Role).Dashboard)
+        else if (permissions.Dashboard)
         {
             DashboardClick(this, new RoutedEventArgs());
         }
-        else if (UserRoles.Get(currentUser.Role).Fleet)
+        else if (permissions.Fleet)
         {
             MaterialClick(this, new RoutedEventArgs());
         }
-        else if (UserRoles.Get(currentUser.Role).Maintenance)
+        else if (permissions.Maintenance)
         {
             MaintenanceClick(this, new RoutedEventArgs());
         }
-        else if (UserRoles.Get(currentUser.Role).Incidents)
+        else if (permissions.Incidents)
         {
             IncidentsClick(this, new RoutedEventArgs());
         }
-        else if (UserRoles.Get(currentUser.Role).Calendar)
+        else if (permissions.GroupCalendar)
         {
             CalendarClick(this, new RoutedEventArgs());
         }
-        else
+        else if (permissions.PersonalCalendar)
         {
-            MapClick(this, new RoutedEventArgs());
+            DriverPlanningClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Assistant)
+        {
+            SupportClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Sav)
+        {
+            SavClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.ManageAccounts)
+        {
+            AccountsClick(this, new RoutedEventArgs());
         }
     }
 
     private void ConfigureRoleAccess()
     {
+        DashboardView.Visibility = Visibility.Collapsed;
         SessionNameLabel.Text = currentUser.DisplayName.ToUpperInvariant();
-        SessionRoleLabel.Text = UserRoles.Display(currentUser.Role);
-        var isDriver = currentUser.Role == UserRoles.Driver;
-        var permissions = UserRoles.Get(currentUser.Role);
+        SessionRoleLabel.Text = AccessControl.AccountDisplay(currentUser);
         DashboardNavButton.Visibility = VisibleIf(permissions.Dashboard);
         MapNavButton.Visibility = VisibleIf(permissions.Map);
         MaterialNavButton.Visibility = VisibleIf(permissions.Fleet);
         IncidentsNavButton.Visibility = VisibleIf(permissions.Incidents);
         MaintenanceNavButton.Visibility = VisibleIf(permissions.Maintenance);
-        CalendarNavButton.Visibility = VisibleIf(permissions.Calendar);
-        DriverPlanningNavButton.Visibility = isDriver ? Visibility.Visible : Visibility.Collapsed;
+        CalendarNavButton.Visibility = VisibleIf(permissions.GroupCalendar);
+        DriverPlanningNavButton.Visibility = VisibleIf(permissions.PersonalCalendar);
         AccountsNavButton.Visibility = VisibleIf(permissions.ManageAccounts);
-        AddVehicleButton.Visibility = VisibleIf(permissions.ManageFleet);
+        AddVehicleButton.Visibility = VisibleIf(permissions.CreateVehicles);
         ExportCsvButton.Visibility = VisibleIf(permissions.Export);
-        FleetHeader.Visibility = VisibleIf(permissions.Fleet || permissions.Incidents || permissions.Maintenance || permissions.Calendar);
-        PilotageHeader.Text = isDriver ? "ESPACE CONDUCTEUR" : UserRoles.Display(currentUser.Role).ToUpperInvariant();
-        AssistanceHeader.Visibility = Visibility.Visible;
+        SupportNavButton.Visibility = VisibleIf(permissions.Assistant);
+        SavNavButton.Visibility = VisibleIf(permissions.Sav);
+        FleetHeader.Visibility = VisibleIf(permissions.Fleet || permissions.Incidents || permissions.Maintenance || permissions.GroupCalendar || permissions.PersonalCalendar);
+        PilotageHeader.Visibility = VisibleIf(permissions.Dashboard || permissions.Map);
+        PilotageHeader.Text = AccessControl.IsProtectedAdministrator(currentUser)
+            ? "👑 ADMINISTRATEUR ATREUS"
+            : $"{UserRoles.Display(currentUser.Role).ToUpperInvariant()} · {currentUser.AccessLevel.ToUpperInvariant()}";
+        AssistanceHeader.Visibility = VisibleIf(permissions.Assistant || permissions.Sav);
+    }
+
+    private void UpdateAccountAlertIndicator(int pendingCount)
+    {
+        if (AccountsNavButton is not null)
+        {
+            AccountsNavButton.Content = pendingCount > 0
+                ? $"♙  Comptes et rôles · {pendingCount} alerte(s)"
+                : "♙  Comptes et rôles";
+        }
     }
 
     private static Visibility VisibleIf(bool allowed) => allowed ? Visibility.Visible : Visibility.Collapsed;
@@ -112,7 +150,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             TypeFilter.Items.Add(new ComboBoxItem { Content = category.Display, Tag = category.Name });
         }
-        if (UserRoles.Get(currentUser.Role).ManageFleet)
+        if (permissions.CreateVehicles || permissions.EditVehicles)
         {
             TypeFilter.Items.Add(new ComboBoxItem { Content = "➕  Créer une catégorie de véhicule…", Tag = VehicleTypes.CreateCategoryAction });
         }
@@ -136,7 +174,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        if (!UserRoles.Get(currentUser.Role).ManageFleet)
+        if (!permissions.CreateVehicles && !permissions.EditVehicles)
         {
             RefreshTypeFilter(selectedVehicleType);
             return;
@@ -156,7 +194,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void MapClick(object sender, RoutedEventArgs e)
     {
-        if (!UserRoles.Get(currentUser.Role).Map) return;
+        if (!permissions.Map) return;
         HideAllViews();
         EmbeddedMapView.ShowVehicles(data);
         EmbeddedMapView.Visibility = Visibility.Visible;
@@ -165,7 +203,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void DashboardClick(object sender, RoutedEventArgs e)
     {
-        if (!UserRoles.Get(currentUser.Role).Dashboard) return;
+        if (!permissions.Dashboard) return;
         HideAllViews();
         DashboardView.Visibility = Visibility.Visible;
         SetActiveNavigation(DashboardNavButton);
@@ -173,7 +211,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void MaterialClick(object sender, RoutedEventArgs e)
     {
-        if (!UserRoles.Get(currentUser.Role).Fleet) return;
+        if (!permissions.Fleet) return;
         HideAllViews();
         MaterialView.ShowVehicles(data);
         MaterialView.Visibility = Visibility.Visible;
@@ -185,7 +223,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void ShowOperations(string kind, Button activeButton)
     {
-        var permissions = UserRoles.Get(currentUser.Role);
         if (kind == OperationKinds.Incident ? !permissions.Incidents : !permissions.Maintenance) return;
         HideAllViews();
         var canManage = kind == OperationKinds.Incident
@@ -198,42 +235,93 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void CalendarClick(object sender, RoutedEventArgs e)
     {
-        if (!UserRoles.Get(currentUser.Role).Calendar) return;
+        if (!permissions.GroupCalendar) return;
         HideAllViews();
-        var permissions = UserRoles.Get(currentUser.Role);
-        CalendarView.ShowData(data, permissions.ManageTasks, permissions.ManageTrips, permissions.ViewTrips);
+        CalendarView.ShowData(data, permissions.ManageTasks, permissions.ManageTrips, permissions.GroupCalendar);
         CalendarView.Visibility = Visibility.Visible;
         SetActiveNavigation(CalendarNavButton);
     }
 
     private void DriverPlanningClick(object sender, RoutedEventArgs e)
     {
-        if (currentUser.Role != UserRoles.Driver || data.FindDriver(currentUser.DriverId) is not Driver driver)
+        if (!permissions.PersonalCalendar)
         {
             return;
         }
 
         HideAllViews();
-        CalendarView.ShowDriverPlan(data, driver);
+        CalendarView.ShowPersonalPlan(data, data.FindDriver(currentUser.DriverId));
         CalendarView.Visibility = Visibility.Visible;
         SetActiveNavigation(DriverPlanningNavButton);
     }
 
     private void SupportClick(object sender, RoutedEventArgs e)
     {
-        new AssistantWindow(data, currentUser) { Owner = this }.ShowDialog();
+        if (!permissions.Assistant) return;
+        HideAllViews();
+        assistantContent.ShowAssistant();
+        AssistantHost.Visibility = Visibility.Visible;
+        SetActiveNavigation(SupportNavButton);
     }
 
     private void SavClick(object sender, RoutedEventArgs e)
     {
-        new AssistantWindow(data, currentUser, openSav: true) { Owner = this }.ShowDialog();
+        if (!permissions.Sav) return;
+        HideAllViews();
+        SavSupportContent.Visibility = Visibility.Visible;
+        SetActiveNavigation(SavNavButton);
     }
 
     private void AccountsClick(object sender, RoutedEventArgs e)
     {
-        if (UserRoles.Get(currentUser.Role).ManageAccounts)
+        if (!permissions.ManageAccounts) return;
+        HideAllViews();
+        userManagementContent.RefreshView();
+        UserManagementHost.Visibility = Visibility.Visible;
+        SetActiveNavigation(AccountsNavButton);
+    }
+
+    private void ReturnFromAccounts()
+    {
+        if (permissions.Dashboard)
         {
-            new UserManagementWindow(data) { Owner = this }.ShowDialog();
+            DashboardClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Fleet)
+        {
+            MaterialClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Incidents)
+        {
+            IncidentsClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Maintenance)
+        {
+            MaintenanceClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.GroupCalendar)
+        {
+            CalendarClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.PersonalCalendar)
+        {
+            DriverPlanningClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Map)
+        {
+            MapClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Assistant)
+        {
+            SupportClick(this, new RoutedEventArgs());
+        }
+        else if (permissions.Sav)
+        {
+            SavClick(this, new RoutedEventArgs());
+        }
+        else
+        {
+            HideAllViews();
         }
     }
 
@@ -244,24 +332,31 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         OperationsView.Visibility = Visibility.Collapsed;
         EmbeddedMapView.Visibility = Visibility.Collapsed;
         CalendarView.Visibility = Visibility.Collapsed;
+        AssistantHost.Visibility = Visibility.Collapsed;
+        SavSupportContent.Visibility = Visibility.Collapsed;
+        UserManagementHost.Visibility = Visibility.Collapsed;
     }
 
     private void MapVehicleSelected(object? sender, Vehicle vehicle) => OpenVehicle(vehicle);
 
     private void OpenVehicle(Vehicle vehicle)
     {
-        var permissions = UserRoles.Get(currentUser.Role);
         if (!permissions.Fleet) return;
-        var window = new VehicleDetailWindow(vehicle, data, permissions.ManageFleet) { Owner = this };
+        var window = new VehicleDetailWindow(vehicle, data, permissions.EditVehicles, permissions.DeleteVehicles) { Owner = this };
         if (window.ShowDialog() == true && window.UpdatedVehicle is not null)
         {
             ReplaceVehicle(window.UpdatedVehicle);
+        }
+        else if (window.WasDeleted)
+        {
+            data.Vehicles.Remove(vehicle);
+            PersistAndRefresh();
         }
     }
 
     private void OpenDriver(Driver driver)
     {
-        if (!UserRoles.Get(currentUser.Role).Fleet) return;
+        if (!permissions.Fleet) return;
         var window = new DriverDetailWindow(driver, data) { Owner = this };
         window.ShowDialog();
     }
@@ -276,7 +371,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void AddVehicleClick(object sender, RoutedEventArgs e)
     {
-        if (!UserRoles.Get(currentUser.Role).ManageFleet)
+        if (!permissions.CreateVehicles)
         {
             MessageBox.Show("Votre rôle ne permet pas de modifier le parc.", "Accès refusé",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -299,7 +394,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void ExportCsvClick(object sender, RoutedEventArgs e)
     {
-        if (!UserRoles.Get(currentUser.Role).Export)
+        if (!permissions.Export)
         {
             MessageBox.Show("Votre rôle ne permet pas d’exporter ces données.", "Accès refusé",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -405,21 +500,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         RefreshVehicles();
         EmbeddedMapView.ShowVehicles(data);
         MaterialView.ShowVehicles(data);
-        if (currentUser.Role == UserRoles.Driver && data.FindDriver(currentUser.DriverId) is Driver driver)
-        {
-            CalendarView.ShowDriverPlan(data, driver);
-        }
-        else
-        {
-            var permissions = UserRoles.Get(currentUser.Role);
-            CalendarView.ShowData(data, permissions.ManageTasks, permissions.ManageTrips, permissions.ViewTrips);
-        }
+        CalendarView.Refresh();
         OperationsView.Refresh();
     }
 
     private void SetActiveNavigation(Button activeButton)
     {
-        foreach (var button in new[] { DashboardNavButton, MapNavButton, MaterialNavButton, IncidentsNavButton, MaintenanceNavButton, CalendarNavButton, DriverPlanningNavButton })
+        foreach (var button in new[] { DashboardNavButton, MapNavButton, MaterialNavButton, IncidentsNavButton, MaintenanceNavButton, CalendarNavButton, DriverPlanningNavButton, SupportNavButton, SavNavButton, AccountsNavButton })
         {
             button.Background = button == activeButton ? new SolidColorBrush(Color.FromRgb(21, 51, 64)) : Brushes.Transparent;
             button.Foreground = button == activeButton ? new SolidColorBrush(Color.FromRgb(232, 238, 240)) : new SolidColorBrush(Color.FromRgb(181, 197, 201));

@@ -18,6 +18,7 @@
     <Resource Include="Assets\atreus-logo.png" />
     <Resource Include="Assets\atreus-industrial-emblem.jpg" />
     <Resource Include="Assets\atreus-assistant.png" />
+    <Resource Include="Assets\m-industrie-logo.png" />
     <Content Include="GlobeMap.html" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

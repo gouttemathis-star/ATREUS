@@ -8,7 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using Microsoft.Web.WebView2.Wpf;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -68,7 +67,7 @@ namespace ATREUS {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ATREUS;V1.0.0.0;component/materialview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ATREUS;component/materialview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\MaterialView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

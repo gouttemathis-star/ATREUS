@@ -25,7 +25,7 @@ public partial class AccountSetupWindow : Window
         {
             data.Users.Add(AccountSecurity.CreateAccount(
                 data, UserNameInput.Text, DisplayNameInput.Text,
-                UserRoles.Administrator, null, PasswordInput.Password));
+                UserRoles.Administrator, AccessLevels.Level3, null, PasswordInput.Password));
             ApplicationDataStore.Save(data);
             DialogResult = true;
         }

@@ -37,6 +37,34 @@ public partial class LoginWindow : Window
         DialogResult = true;
     }
 
+    private void ForgotPasswordClick(object sender, RoutedEventArgs e)
+    {
+        var userName = UserNameInput.Text.Trim();
+        if (userName.Length == 0)
+        {
+            ErrorLabel.Foreground = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(226, 128, 118));
+            ErrorLabel.Text = "Saisissez votre identifiant pour envoyer une demande aux responsables habilités.";
+            UserNameInput.Focus();
+            return;
+        }
+
+        if (!data.PasswordResetRequests.Any(request =>
+                request.Status == "En attente" &&
+                string.Equals(request.UserName, userName, StringComparison.OrdinalIgnoreCase)))
+        {
+            data.PasswordResetRequests.Add(new PasswordResetRequest
+            {
+                UserName = userName,
+                RequestedAt = DateTime.Now
+            });
+            ApplicationDataStore.Save(data);
+        }
+        ErrorLabel.Foreground = new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(124, 203, 155));
+        ErrorLabel.Text = "Si un compte correspondant existe, une demande a été transmise aux responsables habilités.";
+    }
+
     private void InputKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)

@@ -99,11 +99,11 @@
                     <Button x:Name="MaterialNavButton" Style="{StaticResource NavItemStyle}" Content="▤  Parc matériel" Click="MaterialClick" />
                     <Button x:Name="IncidentsNavButton" Style="{StaticResource NavItemStyle}" Content="⚠  Incidents" Click="IncidentsClick" />
                     <Button x:Name="MaintenanceNavButton" Style="{StaticResource NavItemStyle}" Content="⚙  Maintenance" Click="MaintenanceClick" />
-                    <Button x:Name="CalendarNavButton" Style="{StaticResource NavItemStyle}" Content="◷  Calendrier des tâches" Click="CalendarClick" />
-                    <Button x:Name="DriverPlanningNavButton" Style="{StaticResource NavItemStyle}" Content="◷  Planning conducteur" Click="DriverPlanningClick" Visibility="Collapsed" />
+                    <Button x:Name="CalendarNavButton" Style="{StaticResource NavItemStyle}" Content="◷  Calendrier de groupe" Click="CalendarClick" />
+                    <Button x:Name="DriverPlanningNavButton" Style="{StaticResource NavItemStyle}" Content="◷  Planning personnel" Click="DriverPlanningClick" Visibility="Collapsed" />
                     <TextBlock x:Name="AssistanceHeader" Text="ASSISTANCE" FontSize="10" Foreground="#52707A" Margin="14,18,0,8" />
-                    <Button Style="{StaticResource NavItemStyle}" Content="◌  Assistante ATREUS" Click="SupportClick" />
-                    <Button Style="{StaticResource NavItemStyle}" Content="♧  SAV" Click="SavClick" />
+                    <Button x:Name="SupportNavButton" Style="{StaticResource NavItemStyle}" Content="◌  Assistante ATREUS" Click="SupportClick" />
+                    <Button x:Name="SavNavButton" Style="{StaticResource NavItemStyle}" Content="♧  SAV" Click="SavClick" />
                     <Button x:Name="AccountsNavButton" Style="{StaticResource NavItemStyle}" Content="♙  Comptes et rôles" Click="AccountsClick" Visibility="Collapsed" />
                 </StackPanel>
                 </ScrollViewer>
@@ -207,6 +207,9 @@
         <local:OperationsView x:Name="OperationsView" Visibility="Collapsed" />
         <local:MapView x:Name="EmbeddedMapView" Visibility="Collapsed" />
         <local:CalendarView x:Name="CalendarView" Visibility="Collapsed" />
+        <ContentControl x:Name="AssistantHost" Visibility="Collapsed" />
+        <local:SavSupportView x:Name="SavSupportContent" Visibility="Collapsed" />
+        <ContentControl x:Name="UserManagementHost" Visibility="Collapsed" />
     </Grid>
         </Grid>
 </Window>

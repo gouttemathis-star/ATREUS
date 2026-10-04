@@ -79,3 +79,5 @@ C:\Users\mezza\AppData\Local\Temp\ATREUS-LocalAi-Verification\ATREUS.deps.json
 C:\Users\mezza\AppData\Local\Temp\ATREUS-LocalAi-Verification\ATREUS.runtimeconfig.json
 C:\Users\mezza\AppData\Local\Temp\ATREUS-LocalAi-Verification\ATREUS.dll
 C:\Users\mezza\AppData\Local\Temp\ATREUS-LocalAi-Verification\ATREUS.pdb
+C:\atreus\ATREUS\repos\ATREUS\obj\Release\net8.0-windows\SavSupportView.baml
+C:\atreus\ATREUS\repos\ATREUS\obj\Release\net8.0-windows\SavSupportView.g.cs

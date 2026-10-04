@@ -78,7 +78,7 @@ public partial class OperationEditWindow : Window
     {
         if (VehicleInput.SelectedItem is Vehicle vehicle)
         {
-            var detail = new VehicleDetailWindow(vehicle, data) { Owner = this };
+            var detail = new VehicleDetailWindow(vehicle, data, allowDelete: false) { Owner = this };
             if (detail.ShowDialog() == true)
             {
                 ApplicationDataStore.Save(data);

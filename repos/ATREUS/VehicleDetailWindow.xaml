@@ -75,7 +75,7 @@
                         <ItemsControl x:Name="HistoryList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Tag="{Binding Operation}" Click="HistoryItemClick" HorizontalContentAlignment="Left" Padding="10,8" Margin="0,0,0,6" Background="#0B222D" Foreground="#E8EEF0" BorderBrush="#214451">
+                                    <Button Tag="{Binding Operation}" Click="HistoryItemClick" IsEnabled="{Binding CanEdit}" HorizontalContentAlignment="Left" Padding="10,8" Margin="0,0,0,6" Background="#0B222D" Foreground="#E8EEF0" BorderBrush="#214451">
                                         <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="115" /><ColumnDefinition Width="130" /><ColumnDefinition Width="*" /><ColumnDefinition Width="150" /></Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding Operation.Kind}" Foreground="#C8A24A" />
                                             <TextBlock Grid.Column="1" Text="{Binding Date}" Foreground="#A9BBC0" />
@@ -95,7 +95,7 @@
                         <ItemsControl x:Name="VehicleTasksList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Content="{Binding Display}" Tag="{Binding Task}" HorizontalContentAlignment="Left" Padding="9,7" Margin="0,0,0,5" Background="#0B222D" Foreground="#E8EEF0" BorderBrush="#214451" Click="TaskItemClick" />
+                                    <Button Content="{Binding Display}" Tag="{Binding Task}" HorizontalContentAlignment="Left" Padding="9,7" Margin="0,0,0,5" Background="#0B222D" Foreground="#E8EEF0" BorderBrush="#214451" IsEnabled="{Binding CanEdit}" Click="TaskItemClick" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -105,6 +105,9 @@
             </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="DeleteButton" Content="Supprimer le véhicule" Padding="14,8" Margin="0,0,8,0"
+                    Background="#552C31" Foreground="#F1B6B1" BorderBrush="#7C3F43"
+                    Visibility="Collapsed" Click="DeleteClick" />
             <Button Content="Fermer" Padding="14,8" Margin="0,0,8,0" Click="CloseClick" />
             <Button x:Name="SaveButton" Content="Enregistrer" Padding="14,8" Background="#C8A24A" Foreground="#06151D" BorderThickness="0" Visibility="Collapsed" Click="SaveClick" />
         </StackPanel>
